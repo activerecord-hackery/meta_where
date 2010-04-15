@@ -10,7 +10,11 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
   s.date = %q{2010-04-15}
-  s.description = %q{TODO: longer description of your gem}
+  s.description = %q{
+      MetaWhere offers the ability to call any Arel predicate methods
+      (with a few convenient aliases) on your Model's attributes instead
+      of the ones normally offered by ActiveRecord's hash parameters.
+    }
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -23,7 +27,14 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "lib/core_ext/symbol.rb",
      "lib/meta_where.rb",
+     "lib/meta_where/column.rb",
+     "lib/meta_where/condition.rb",
+     "lib/meta_where/predicate_builder.rb",
+     "lib/meta_where/query_methods.rb",
+     "lib/meta_where/railtie.rb",
+     "meta_where.gemspec",
      "test/helper.rb",
      "test/test_meta_where.rb"
   ]
@@ -31,7 +42,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
-  s.summary = %q{TODO: one-line summary of your gem}
+  s.summary = %q{Get the power of Arel predications (comparison methods) in your ActiveRecord condition hashes.}
   s.test_files = [
     "test/helper.rb",
      "test/test_meta_where.rb"
@@ -42,12 +53,21 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+      s.add_development_dependency(%q<shoulda>, [">= 0"])
+      s.add_runtime_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
+      s.add_runtime_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
+      s.add_runtime_dependency(%q<arel>, [">= 0.3.3"])
     else
-      s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+      s.add_dependency(%q<shoulda>, [">= 0"])
+      s.add_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
+      s.add_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
+      s.add_dependency(%q<arel>, [">= 0.3.3"])
     end
   else
-    s.add_dependency(%q<thoughtbot-shoulda>, [">= 0"])
+    s.add_dependency(%q<shoulda>, [">= 0"])
+    s.add_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
+    s.add_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
+    s.add_dependency(%q<arel>, [">= 0.3.3"])
   end
 end
 

@@ -1,17 +1,76 @@
-= meta_where
+= MetaWhere
 
-Description goes here.
+MetaWhere puts the power of Arel predications (comparison methods) in your ActiveRecord
+condition hashes.
 
-== Note on Patches/Pull Requests
- 
-* Fork the project.
-* Make your feature addition or bug fix.
-* Add tests for it. This is important so I don't break it in a
-  future version unintentionally.
-* Commit, do not mess with rakefile, version, or history.
-  (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
-* Send me a pull request. Bonus points for topic branches.
+MetaWhere offers the ability to call any Arel predicate methods (with a few convenient aliases)
+on your Model's attributes instead of the ones normally offered by ActiveRecord's hash parameters.
+
+Normally, ActiveRecord interprets a conditions hash as an Arel predicate of type Equality or
+In, depending on whether you supply a single value or an array on the value side of the hash.
+
+MetaWhere allows you to specify what specific Arel "predication" method you would like to use.
+These are methods on attributes which cause Arel to generate different SQL on your behalf.
+
+Examples speak louder than words, so read on.
+
+== Example usage
+
+=== Where
+You can use MetaWhere in your usual method chain:
+
+  Article.where(:title[:matches] => 'Hello%', :created_at[:gt] => 3.days.ago)
+  => SELECT "articles".* FROM "articles" WHERE ("articles"."title" LIKE 'Hello%')
+     AND ("articles"."created_at" > '2010-04-12 18:39:32.592087')
+     
+=== Find condition hash
+You can also use similar syntax in a conditions hash supplied to ActiveRecord::Base#find:
+
+  Article.find(:all,
+    :conditions => {
+      :title[:matches] => 'Hello%',
+      :created_at[:gt] => 3.days.ago
+    }
+  )
+
+=== Scopes
+They also work in named scopes as you would expect.
+
+  class Article
+    scope :recent, lambda {|v| where(:created_at[:gt] => v.days.ago)}
+  end
+  
+  Article.recent(14).to_sql
+  => SELECT "articles".* FROM "articles"
+     WHERE ("articles"."created_at" > '2010-04-01 18:54:37.030951')
+  
+=== Operators
+Additionally, you can use certain operators as shorthand for certain Arel predication methods.
+These are experimental at this point and subject to change. Keep in mind that if you don't want
+to enclose other conditions in {}, you should place operator conditions before any hash conditions.
+
+  Article.where(:created_at > 100.days.ago, :title =~ 'Hi%').to_sql
+  => SELECT "articles".* FROM "articles"
+     WHERE ("articles"."created_at" > '2010-01-05 20:11:44.997446')
+     AND ("articles"."title" LIKE 'Hi%')
+
+Operators are:
+
+* ^ (not equal)
+* + (in array/range)
+* \- (not in array/range)
+* \=~ (matching -- not a regexp but a string for SQL LIKE)
+* !~ (not matching, only available under Ruby 1.9)
+* > (greater than)
+* >= (greater than or equal to)
+* < (less than)
+* <= (less than or equal to)
+
+== Thanks
+A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch
+I'd submitted, and his take on a DSL for query conditions, which was the inspiration for this
+gem.
 
 == Copyright
 
-Copyright (c) 2010 Ernie Miller. See LICENSE for details.
+Copyright (c) 2010 {Ernie Miller}[http://metautonomo.us]. See LICENSE for details.

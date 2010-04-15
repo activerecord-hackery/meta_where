@@ -13,6 +13,8 @@ module MetaWhere
         if value.is_a?(Hash)
           table = Arel::Table.new(column, :engine => @engine)
           build_from_hash(value, table)
+        elsif value.is_a?(Array) && value.all? {|v| v.is_a?(MetaWhere::Condition)}
+          value.map {|val| build_from_condition(val, table)}
         else
           if column.is_a?(MetaWhere::Column)
             method = column.method
@@ -40,6 +42,17 @@ module MetaWhere
       end
 
       predicates.flatten
+    end
+    
+    def build_from_condition(condition, table)
+      unless attribute = table[condition.column]
+        raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
+      end
+      
+      unless valid_comparison_method?(condition.method)
+        raise ::ActiveRecord::StatementInvalid, "No comparison method named `#{condition.method}` exists for column `#{column}`"
+      end
+      attribute.send(condition.method, *args_for_predicate(condition.method.to_s, condition.value))
     end
     
     private

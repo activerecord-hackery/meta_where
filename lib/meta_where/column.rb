@@ -4,7 +4,7 @@ module MetaWhere
     
     def initialize(column, method)
       @column = column.to_s
-      @method = method
+      @method = MetaWhere::METHOD_ALIASES[method.to_s] || method
     end
     
     # Play "nicely" with expand_hash_conditions_for_aggregates
