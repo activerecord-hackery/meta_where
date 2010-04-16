@@ -43,7 +43,7 @@ They also work in named scopes as you would expect.
   Article.recent(14).to_sql
   => SELECT "articles".* FROM "articles"
      WHERE ("articles"."created_at" > '2010-04-01 18:54:37.030951')
-  
+
 === Operators
 Additionally, you can use certain operators as shorthand for certain Arel predication methods.
 These are experimental at this point and subject to change. Keep in mind that if you don't want
@@ -65,6 +65,51 @@ Operators are:
 * >= (greater than or equal to)
 * < (less than)
 * <= (less than or equal to)
+
+=== Compounds
+You can use the & and | operators to perform ands and ors within your queries.
+
+<strong>With operators:</strong>
+  Article.where((:title =~ 'Hello%') | (:title =~ 'Goodbye%')).to_sql
+  => SELECT "articles".* FROM "articles" WHERE (("articles"."title" LIKE 'Hello%'
+     OR "articles"."title" LIKE 'Goodbye%'))
+
+That's kind of annoying, since operator precedence is such that you have to put
+parentheses around everything. So MetaWhere also supports a substitution-inspired
+(String#%) syntax.
+
+<strong>With "substitutions":</strong>
+  Article.where(:title[:matches] % 'Hello%' | :title[:matches] % 'Goodbye%').to_sql
+  => SELECT "articles".* FROM "articles" WHERE (("articles"."title" LIKE 'Hello%'
+     OR "articles"."title" LIKE 'Goodbye%'))
+
+<strong>With hashes:</strong>
+  Article.where(
+    {:created_at[:lt] => Time.now} & {:created_at[:gt] => 1.year.ago}
+  ).to_sql
+  => SELECT "articles".* FROM       \"articles\" WHERE     (((\"articles\".\"created_at\" < '2010-04-16 00:26:30.629467') AND (\"articles\".\"created_at\" > '2009-04-16 00:26:30.629526')))"
+  
+<strong>With both hashes and substitutions:</strong>
+  Article.where(
+    :title[:matches] % 'Hello%' &
+    {:created_at[:lt] => Time.now, :created_at[:gt] => 1.year.ago}
+  ).to_sql
+  => SELECT "articles".* FROM  "articles" WHERE (("articles"."title" LIKE 'Hello%' AND
+     ("articles"."created_at" < '2010-04-16 01:04:38.023615' AND
+      "articles"."created_at" > '2009-04-16 01:04:38.023720')))
+
+== My Arel fork
+If you encounter any strange behavior, try adding the following to your Gemfile:
+
+  gem 'arel', :git => "git://github.com/ernie/arel.git"
+
+This fork has some updates that have not yet been committed upstream, though I hope they
+will be. I think I covered all of the differences that break functionality with workarounds
+in MetaWhere, but I don't really use the main arel fork in my day-to-day development so I
+can't be sure.
+
+Two things you will definitely not get without my fork (at the time of this writing) are
+the <tt>:notmatches</tt> (NOT LIKE) and <tt>:notin</tt> (NOT IN (val1, val2)) predications.
 
 == Thanks
 A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch

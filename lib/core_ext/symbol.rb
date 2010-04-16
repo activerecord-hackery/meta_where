@@ -4,7 +4,7 @@ class Symbol
   end
   
   def ^(value)
-    MetaWhere::Condition.new(self, value, :noteq)
+    MetaWhere::Condition.new(self, value,  MetaWhere::NOT)
   end
   
   def +(value)

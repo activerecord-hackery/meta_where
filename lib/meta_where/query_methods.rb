@@ -15,8 +15,8 @@ module MetaWhere
             when Hash
               attributes = @klass.send(:expand_hash_conditions_for_aggregates, arg)
               builder.build_from_hash(attributes, table)
-            when MetaWhere::Condition
-              builder.build_from_condition(arg, table)
+            when MetaWhere::Condition, MetaWhere::Compound
+              arg.to_predicate(table)
             else
               opts
             end

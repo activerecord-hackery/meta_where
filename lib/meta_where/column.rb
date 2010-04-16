@@ -7,6 +7,10 @@ module MetaWhere
       @method = MetaWhere::METHOD_ALIASES[method.to_s] || method
     end
     
+    def %(value)
+      MetaWhere::Condition.new(column, value, method)
+    end
+    
     # Play "nicely" with expand_hash_conditions_for_aggregates
     def to_sym
       self
