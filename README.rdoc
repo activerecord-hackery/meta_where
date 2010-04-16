@@ -101,36 +101,36 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
 
 <b>With insanity... errr, complex combinations(*):</b>
 
-Article.joins(:comments).where(
-  {:title => 'Greetings'} |
-  (
+  Article.joins(:comments).where(
+    {:title => 'Greetings'} |
     (
-      :created_at.gt % 21.days.ago &
-      :created_at.lt % 7.days.ago
+      (
+        :created_at.gt % 21.days.ago &
+        :created_at.lt % 7.days.ago
+      ) &
+      :body.matches % '%from the past%'
     ) &
-    :body.matches % '%from the past%'
-  ) &
-  {:comments => [:body =~ '%first post!%']}
-).to_sql
- => SELECT "articles".*
-   FROM "articles"
-     INNER JOIN "comments"
-     ON "comments"."article_id" = "articles"."id"
-   WHERE 
-   ((
-     "articles"."title" = 'Greetings'
-     OR
-     (
+    {:comments => [:body =~ '%first post!%']}
+  ).to_sql
+  => SELECT "articles".*
+     FROM "articles"
+       INNER JOIN "comments"
+       ON "comments"."article_id" = "articles"."id"
+     WHERE 
+     ((
+       "articles"."title" = 'Greetings'
+       OR
        (
          (
-           "articles"."created_at" > '2010-03-26 05:57:57.924258'
-           AND "articles"."created_at" < '2010-04-09 05:57:57.924984'
+           (
+             "articles"."created_at" > '2010-03-26 05:57:57.924258'
+             AND "articles"."created_at" < '2010-04-09 05:57:57.924984'
+           )
+           AND "articles"."body" LIKE '%from the past%'
          )
-         AND "articles"."body" LIKE '%from the past%'
+         AND "comments"."body" LIKE '%first post!%'
        )
-       AND "comments"."body" LIKE '%first post!%'
-     )
-   )) 
+     )) 
 
 (*) Formatting added for clarity. I said you could do this, not that you should. :)
 
