@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_where}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
@@ -27,13 +27,16 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "lib/core_ext/hash.rb",
      "lib/core_ext/symbol.rb",
      "lib/meta_where.rb",
      "lib/meta_where/column.rb",
+     "lib/meta_where/compound.rb",
      "lib/meta_where/condition.rb",
      "lib/meta_where/predicate_builder.rb",
      "lib/meta_where/query_methods.rb",
      "lib/meta_where/railtie.rb",
+     "lib/meta_where/utility.rb",
      "meta_where.gemspec",
      "test/helper.rb",
      "test/test_meta_where.rb"
