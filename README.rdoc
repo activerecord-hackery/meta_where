@@ -4,7 +4,7 @@ MetaWhere puts the power of Arel predications (comparison methods) in your Activ
 condition hashes.
 
 MetaWhere offers the ability to call any Arel predicate methods (with a few convenient aliases)
-on your Model's attributes instead of the ones normally offered by ActiveRecord's hash parameters.
+on your model's attributes instead of the ones normally offered by ActiveRecord's hash parameters.
 
 Normally, ActiveRecord interprets a conditions hash as an Arel predicate of type Equality or
 In, depending on whether you supply a single value or an array on the value side of the hash.
@@ -19,7 +19,7 @@ Examples speak louder than words, so read on.
 === Where
 You can use MetaWhere in your usual method chain:
 
-  Article.where(:title[:matches] => 'Hello%', :created_at[:gt] => 3.days.ago)
+  Article.where(:title.matches => 'Hello%', :created_at.gt => 3.days.ago)
   => SELECT "articles".* FROM "articles" WHERE ("articles"."title" LIKE 'Hello%')
      AND ("articles"."created_at" > '2010-04-12 18:39:32.592087')
      
@@ -28,8 +28,8 @@ You can also use similar syntax in a conditions hash supplied to ActiveRecord::B
 
   Article.find(:all,
     :conditions => {
-      :title[:matches] => 'Hello%',
-      :created_at[:gt] => 3.days.ago
+      :title.matches => 'Hello%',
+      :created_at.gt => 3.days.ago
     }
   )
 
@@ -37,7 +37,7 @@ You can also use similar syntax in a conditions hash supplied to ActiveRecord::B
 They also work in named scopes as you would expect.
 
   class Article
-    scope :recent, lambda {|v| where(:created_at[:gt] => v.days.ago)}
+    scope :recent, lambda {|v| where(:created_at.gt => v.days.ago)}
   end
   
   Article.recent(14).to_sql
@@ -56,10 +56,11 @@ to enclose other conditions in {}, you should place operator conditions before a
 
 Operators are:
 
+* [] (equal)
 * ^ (not equal)
 * + (in array/range)
-* \- (not in array/range)
-* \=~ (matching -- not a regexp but a string for SQL LIKE)
+* - (not in array/range)
+* =~ (matching -- not a regexp but a string for SQL LIKE)
 * !~ (not matching, only available under Ruby 1.9)
 * > (greater than)
 * >= (greater than or equal to)
@@ -69,7 +70,7 @@ Operators are:
 === Compounds
 You can use the & and | operators to perform ands and ors within your queries.
 
-<strong>With operators:</strong>
+<b>With operators:</b>
   Article.where((:title =~ 'Hello%') | (:title =~ 'Goodbye%')).to_sql
   => SELECT "articles".* FROM "articles" WHERE (("articles"."title" LIKE 'Hello%'
      OR "articles"."title" LIKE 'Goodbye%'))
@@ -78,25 +79,60 @@ That's kind of annoying, since operator precedence is such that you have to put
 parentheses around everything. So MetaWhere also supports a substitution-inspired
 (String#%) syntax.
 
-<strong>With "substitutions":</strong>
-  Article.where(:title[:matches] % 'Hello%' | :title[:matches] % 'Goodbye%').to_sql
+<b>With "substitutions":</b>
+  Article.where(:title.matches % 'Hello%' | :title.matches % 'Goodbye%').to_sql
   => SELECT "articles".* FROM "articles" WHERE (("articles"."title" LIKE 'Hello%'
      OR "articles"."title" LIKE 'Goodbye%'))
 
-<strong>With hashes:</strong>
+<b>With hashes:</b>
   Article.where(
-    {:created_at[:lt] => Time.now} & {:created_at[:gt] => 1.year.ago}
+    {:created_at.lt => Time.now} & {:created_at.gt => 1.year.ago}
   ).to_sql
   => SELECT "articles".* FROM       \"articles\" WHERE     (((\"articles\".\"created_at\" < '2010-04-16 00:26:30.629467') AND (\"articles\".\"created_at\" > '2009-04-16 00:26:30.629526')))"
   
-<strong>With both hashes and substitutions:</strong>
+<b>With both hashes and substitutions:</b>
   Article.where(
-    :title[:matches] % 'Hello%' &
-    {:created_at[:lt] => Time.now, :created_at[:gt] => 1.year.ago}
+    :title.matches % 'Hello%' &
+    {:created_at.lt => Time.now, :created_at.gt => 1.year.ago}
   ).to_sql
   => SELECT "articles".* FROM  "articles" WHERE (("articles"."title" LIKE 'Hello%' AND
      ("articles"."created_at" < '2010-04-16 01:04:38.023615' AND
       "articles"."created_at" > '2009-04-16 01:04:38.023720')))
+
+<b>With insanity... errr, complex combinations(*):</b>
+
+Article.joins(:comments).where(
+  {:title => 'Greetings'} |
+  (
+    (
+      :created_at.gt % 21.days.ago &
+      :created_at.lt % 7.days.ago
+    ) &
+    :body.matches % '%from the past%'
+  ) &
+  {:comments => [:body =~ '%first post!%']}
+).to_sql
+ => SELECT "articles".*
+   FROM "articles"
+     INNER JOIN "comments"
+     ON "comments"."article_id" = "articles"."id"
+   WHERE 
+   ((
+     "articles"."title" = 'Greetings'
+     OR
+     (
+       (
+         (
+           "articles"."created_at" > '2010-03-26 05:57:57.924258'
+           AND "articles"."created_at" < '2010-04-09 05:57:57.924984'
+         )
+         AND "articles"."body" LIKE '%from the past%'
+       )
+       AND "comments"."body" LIKE '%first post!%'
+     )
+   )) 
+
+(*) Formatting added for clarity. I said you could do this, not that you should. :)
 
 == My Arel fork
 If you encounter any strange behavior, try adding the following to your Gemfile:

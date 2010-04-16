@@ -4,7 +4,7 @@ module MetaWhere
     
     def initialize(column, method)
       @column = column.to_s
-      @method = MetaWhere::METHOD_ALIASES[method.to_s] || method
+      @method = method
     end
     
     def %(value)
