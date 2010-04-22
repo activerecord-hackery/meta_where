@@ -12,7 +12,9 @@ module MetaWhere
       @method = MetaWhere::METHOD_ALIASES[method.to_s] || method
     end
     
-    def to_predicate(table)
+    def to_predicate(builder, parent = nil)
+      table = builder.build_table(parent)
+      
       unless attribute = table[column]
         raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
       end

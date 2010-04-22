@@ -17,14 +17,14 @@ module MetaWhere
   end
   
   class Or < Compound
-    def to_predicate(table)
-      condition1.to_predicate(table).or(condition2.to_predicate(table))
+    def to_predicate(builder, parent = nil)
+      condition1.to_predicate(builder, parent).or(condition2.to_predicate(builder, parent))
     end
   end
   
   class And < Compound
-    def to_predicate(table)
-      condition1.to_predicate(table).and(condition2.to_predicate(table))
+    def to_predicate(builder, parent = nil)
+      condition1.to_predicate(builder, parent).and(condition2.to_predicate(builder, parent))
     end
   end
 end
