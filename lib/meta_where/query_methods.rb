@@ -44,17 +44,31 @@ module MetaWhere
 
       @joins_values.map! {|j| j.respond_to?(:strip) ? j.strip : j}.uniq!
       
-      join_operations = @joins_values.select {|j| j.is_a?(ActiveRecord::Relation::JoinOperation)}
+      association_joins = @joins_values.select {|j| [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)}
+      non_association_joins = @joins_values - association_joins
       
-      # Do these first, since eager loading expects these column names
-      join_operations.each do |join|
-        arel = arel.join(join.relation, join.join_class).on(*join.on)
+      # Let's give preference to the user-supplied and eager-loading joins, since association
+      # joins are able to be worked out intelligently later.
+      non_association_joins.each do |join|
+        next if join.blank?
+
+        @implicit_readonly = true
+
+        case join
+        when ActiveRecord::Relation::JoinOperation
+          arel = arel.join(join.relation, join.join_class).on(*join.on)
+        when Hash, Array, Symbol
+          if array_of_strings?(join)
+            join_string = join.join(' ')
+            arel = arel.join(join_string)
+          end
+        else
+          arel = arel.join(join)
+        end
       end
       
-      association_joins = @joins_values.select {|j| [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)}
-      
       to_join = []
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, arel.joins(arel))
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, arel.to_sql)
       
       # Build wheres now to take advantage of autojoin if needed
       builder = MetaWhere::PredicateBuilder.new(join_dependency, @autojoin_value)
@@ -73,22 +87,6 @@ module MetaWhere
       
       to_join.each do |tj|
         arel = arel.join(tj[0]).on(*tj[1])
-      end
-
-      (@joins_values - association_joins).each do |join|
-        next if join.blank?
-
-        @implicit_readonly = true
-
-        case join
-        when ActiveRecord::Relation::JoinOperation, Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel = arel.join(join_string)
-          end
-        else
-          arel = arel.join(join)
-        end
       end
       
       predicate_wheres.each do |where|
@@ -141,6 +139,23 @@ module MetaWhere
       end if @lock_value.present?
 
       arel
+    end
+    
+    def non_association_join(table, *joins)
+      joins.inject(table) { |arel_table, join|
+        case join
+        when ActiveRecord::Relation::JoinOperation
+          arel_table = are_tablel.join(join.relation, join.join_class).on(*join.on)
+        when Hash, Array, Symbol
+          if array_of_strings?(join)
+            join_string = join.join(' ')
+            arel_table = arel_table.join(join_string)
+          end
+        else
+          arel_table = arel_table.join(join)
+        end
+        arel_table
+      }
     end
   end
 end

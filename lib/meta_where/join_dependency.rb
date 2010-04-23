@@ -86,6 +86,10 @@ module MetaWhere
   module JoinAssociation
     extend ActiveSupport::Concern
     
+    included do
+      alias_method_chain :aliased_table_name_for, :metawhere
+    end
+    
     def ==(other)
       other.is_a?(JoinAssociation) &&
       other.reflection == reflection &&
@@ -96,6 +100,24 @@ module MetaWhere
       other_join_dependency.joins.detect do |join|
         self.parent == join
       end
+    end
+    
+    def aliased_table_name_for_with_metawhere(name, suffix = nil)
+      if !@join_dependency.join_base.table_joins.blank? && @join_dependency.join_base.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{active_record.connection.quote_table_name name.downcase}\son}
+        @join_dependency.table_aliases[name] += 1
+      end
+
+      unless @join_dependency.table_aliases[name].zero?
+        # if the table name has been used, then use an alias
+        name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
+        table_index = @join_dependency.table_aliases[name]
+        @join_dependency.table_aliases[name] += 1
+        name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+      else
+        @join_dependency.table_aliases[name] += 1
+      end
+
+      name
     end
   end
 end
