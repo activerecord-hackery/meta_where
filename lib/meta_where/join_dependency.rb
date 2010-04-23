@@ -10,13 +10,13 @@ module MetaWhere
     class ConfigurationError < StandardError; end
     class AssociationNotFoundError < StandardError; end
     
-    def build_with_metawhere(associations, parent = nil)
+    def build_with_metawhere(associations, parent = nil, allow_duplicates = false)
       parent ||= @joins.last
       case associations
       when Symbol, String
         reflection = parent.reflections[associations.to_s.intern] or
         raise AssociationNotFoundError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
-        unless association = find_join_association(reflection, parent)
+        if allow_duplicates || !(association = find_join_association(reflection, parent))
           @reflections << reflection
           association = (@joins << build_join_association(reflection, parent)).last
         end
@@ -27,8 +27,8 @@ module MetaWhere
         end
       when Hash
         associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-          build(name, parent)
-          build(associations[name])
+          association = build(name, parent)
+          build(associations[name], association)
         end
       else
         raise ConfigurationError, associations.inspect

@@ -17,10 +17,6 @@ module MetaWhere
       CEVAL
     end
     
-    def join_dependency
-      @join_dependency ||= ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, [], nil)
-    end
-    
     def build_where(*args)
       return if args.blank?
 
@@ -48,11 +44,17 @@ module MetaWhere
 
       @joins_values.map! {|j| j.respond_to?(:strip) ? j.strip : j}.uniq!
       
+      join_operations = @joins_values.select {|j| j.is_a?(ActiveRecord::Relation::JoinOperation)}
+      
+      # Do these first, since eager loading expects these column names
+      join_operations.each do |join|
+        arel = arel.join(join.relation, join.join_class).on(*join.on)
+      end
+      
       association_joins = @joins_values.select {|j| [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)}
       
       to_join = []
-      join_dependency.send(:build, association_joins, join_dependency.join_base)
-      @joins_values -= association_joins
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, arel.joins(arel))
       
       # Build wheres now to take advantage of autojoin if needed
       builder = MetaWhere::PredicateBuilder.new(join_dependency, @autojoin_value)
@@ -73,15 +75,13 @@ module MetaWhere
         arel = arel.join(tj[0]).on(*tj[1])
       end
 
-      @joins_values.each do |join|
+      (@joins_values - association_joins).each do |join|
         next if join.blank?
 
         @implicit_readonly = true
 
         case join
-        when Relation::JoinOperation
-          arel = arel.join(join.relation, join.join_class).on(*join.on)
-        when Hash, Array, Symbol
+        when ActiveRecord::Relation::JoinOperation, Hash, Array, Symbol
           if array_of_strings?(join)
             join_string = join.join(' ')
             arel = arel.join(join_string)
