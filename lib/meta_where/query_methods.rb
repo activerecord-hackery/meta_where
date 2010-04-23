@@ -140,22 +140,5 @@ module MetaWhere
 
       arel
     end
-    
-    def non_association_join(table, *joins)
-      joins.inject(table) { |arel_table, join|
-        case join
-        when ActiveRecord::Relation::JoinOperation
-          arel_table = are_tablel.join(join.relation, join.join_class).on(*join.on)
-        when Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel_table = arel_table.join(join_string)
-          end
-        else
-          arel_table = arel_table.join(join)
-        end
-        arel_table
-      }
-    end
   end
 end
