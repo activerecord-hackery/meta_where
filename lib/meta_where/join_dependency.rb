@@ -71,6 +71,15 @@ module MetaWhere
       end
       self
     end
+    
+    def count_aliases_from_table_joins(name)
+      quoted_name = join_base.active_record.connection.quote_table_name(name.downcase)
+      join_base.table_joins.blank? ? 0 :
+        # Table names
+        join_base.table_joins.to_s.downcase.scan(/join(?:\s+\w+)?\s+#{quoted_name}\son/).size +
+        # Table aliases
+        join_base.table_joins.to_s.downcase.scan(/join(?:\s+\w+)?\s+\S+\s+#{quoted_name}\son/).size
+    end
   end
   
   module JoinBase
@@ -103,20 +112,23 @@ module MetaWhere
     end
     
     def aliased_table_name_for_with_metawhere(name, suffix = nil)
-      if !@join_dependency.join_base.table_joins.blank? && @join_dependency.join_base.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{active_record.connection.quote_table_name name.downcase}\son}
-        @join_dependency.table_aliases[name] += 1
+      if @join_dependency.table_aliases[name].zero?
+        @join_dependency.table_aliases[name] = @join_dependency.count_aliases_from_table_joins(name)
       end
-
-      unless @join_dependency.table_aliases[name].zero?
-        # if the table name has been used, then use an alias
+      
+      if !@join_dependency.table_aliases[name].zero? # We need an alias
         name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}#{suffix}"
-        table_index = @join_dependency.table_aliases[name]
         @join_dependency.table_aliases[name] += 1
-        name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+        if @join_dependency.table_aliases[name] == 1 # First time we've seen this name
+          # Also need to count the aliases from the table_aliases to avoid incorrect count
+          @join_dependency.table_aliases[name] += @join_dependency.count_aliases_from_table_joins(name)
+        end
+        table_index = @join_dependency.table_aliases[name]
+        name = name[0..active_record.connection.table_alias_length-3] + "_#{table_index}" if table_index > 1
       else
         @join_dependency.table_aliases[name] += 1
       end
-
+      
       name
     end
   end
