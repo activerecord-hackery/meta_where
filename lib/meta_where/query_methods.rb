@@ -19,15 +19,16 @@ module MetaWhere
     
     def build_where(*args)
       return if args.blank?
-
-      opts = args.first
-      if [String, Array].include?(opts.class)
-        @klass.send(:sanitize_sql, args.size > 1 ? args : opts)
+      
+      if args.first.is_a?(String)
+        @klass.send(:sanitize_sql, args)
       else
         predicates = []
         args.each do |arg|
           predicates += Array.wrap(
             case arg
+            when Array
+              @klass.send(:sanitize_sql, arg)
             when Hash
               @klass.send(:expand_hash_conditions_for_aggregates, arg)
             else

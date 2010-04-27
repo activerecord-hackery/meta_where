@@ -88,7 +88,9 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
   Article.where(
     {:created_at.lt => Time.now} & {:created_at.gt => 1.year.ago}
   ).to_sql
-  => SELECT "articles".* FROM       \"articles\" WHERE     (((\"articles\".\"created_at\" < '2010-04-16 00:26:30.629467') AND (\"articles\".\"created_at\" > '2009-04-16 00:26:30.629526')))"
+  => SELECT "articles".* FROM "articles" WHERE
+     ((("articles"."created_at" < '2010-04-16 00:26:30.629467')
+     AND ("articles"."created_at" > '2009-04-16 00:26:30.629526')))
   
 <b>With both hashes and substitutions:</b>
   Article.where(
@@ -133,6 +135,74 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
      )) 
 
 (*) Formatting added for clarity. I said you could do this, not that you should. :)
+
+=== But wait, there's more!
+
+== Autojoin
+Normally, you have to be sure to join (or include, which will join if conditions warrant)
+any associations that you're including in your wheres. With MetaWhere, you can just build
+up your relation's conditions, and tack an <tt>autojoin</tt> anywhere in the chain. MetaWhere
+will check out the associations you're using in your conditions and join them automatically
+(if they aren't already joined).
+
+  Article.where(:comments => [:body.like % '%FIRST POST%']).autojoin
+
+Remember that joins will return duplicate rows if your conditions don't prevent it, so
+you might want to tack on a <tt>uniq</tt> as well.
+
+== Intelligent hash condition mapping
+This is one of those things I hope you find so intuitive that you forget it wasn't
+built in already.
+
+PredicateBuilder (the part of ActiveRecord responsible for turning your conditions
+hash into a valid SQL query) will allow you to nest conditions in order to specify a
+table that the conditions apply to:
+
+  Article.joins(:comments).where(:comments => {:body => 'hey'}).to_sql 
+  => SELECT "articles".* FROM "articles" INNER JOIN "comments"
+     ON "comments"."article_id" = "articles"."id"
+     WHERE ("comments"."body" = 'hey')
+     
+This feels pretty magical at first, but the magic quickly breaks down/. Consider an
+association named <tt>:other_comments</tt> that is just a condition against comments:
+
+  Article.joins(:other_comments).where(:other_comments => {:body => 'hey'}).to_sql
+  => ActiveRecord::StatementInvalid: No attribute named `body` exists for table `other_comments`
+
+Ick. This is because the query is being created against tables, and not against associations.
+You'd need to do...
+
+  Article.joins(:other_comments).where(:comments => {:body => 'hey'})
+
+...instead.
+
+With MetaWhere:
+
+  Article.joins(:other_comments).where(:other_comments => {:body => 'hey'}).to_sql
+  => SELECT "articles".* FROM "articles" INNER JOIN "comments" 
+     ON "comments"."article_id" = "articles"."id" WHERE (("comments"."body" = 'hey'))
+
+Of course, it's even simpler with <tt>autojoin</tt>, but the general idea is that if an
+association with the name provided exists, MetaWhere::PredicateBuilder will build the
+conditions against that association's table, before falling back to a standard table name
+scheme. It also handles nested associations:
+
+  Article.where(
+    :comments => {
+      :body => 'yo',
+      :moderations => [:value < 0]
+    },
+    :other_comments => {:body => 'hey'}
+  ).autojoin.to_sql
+  => SELECT "articles".* FROM "articles"
+     INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
+     INNER JOIN "moderations" ON "moderations"."comment_id" = "comments"."id"
+     INNER JOIN "comments" "other_comments_articles"
+       ON "other_comments_articles"."article_id" = "articles"."id"
+    WHERE (("comments"."body" = 'yo' AND "moderations"."value" < 0
+      AND "other_comments_articles"."body" = 'hey'))
+
+Contrived example, I'll admit -- but I'll bet you can think of some uses for this.
 
 == My Arel fork
 If you encounter any strange behavior, try adding the following to your Gemfile:

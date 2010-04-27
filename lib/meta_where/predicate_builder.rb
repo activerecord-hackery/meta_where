@@ -27,7 +27,7 @@ module MetaWhere
         if value.is_a?(Hash)
           association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
           build_from_hash(value, association || column)
-        elsif value.is_a?(Array) && value.all? {|v| v.is_a?(MetaWhere::Condition)}
+        elsif value.is_a?(Array) && value.all? {|v| v.is_a?(MetaWhere::Condition) || v.is_a?(Hash)}
           association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
           value.map {|val| val.to_predicate(self, association || column)}
         else
