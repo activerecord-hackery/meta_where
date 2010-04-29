@@ -10,25 +10,25 @@ module MetaWhere
     class ConfigurationError < StandardError; end
     class AssociationNotFoundError < StandardError; end
     
-    def build_with_metawhere(associations, parent = nil, allow_duplicates = false)
+    def build_with_metawhere(associations, parent = nil, join_class = Arel::InnerJoin)
       parent ||= @joins.last
       case associations
       when Symbol, String
         reflection = parent.reflections[associations.to_s.intern] or
         raise AssociationNotFoundError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
-        if allow_duplicates || !(association = find_join_association(reflection, parent))
+        unless association = find_join_association(reflection, parent)
           @reflections << reflection
-          association = (@joins << build_join_association(reflection, parent)).last
+          association = (@joins << build_join_association(reflection, parent).with_join_class(join_class)).last
         end
         association
       when Array
         associations.each do |association|
-          build(association, parent)
+          build(association, parent, join_class)
         end
       when Hash
         associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
-          association = build(name, parent)
-          build(associations[name], association)
+          association = build(name, parent, join_class)
+          build(associations[name], association, join_class)
         end
       else
         raise ConfigurationError, associations.inspect
@@ -67,7 +67,7 @@ module MetaWhere
     def graft(*associations)
       associations.each do |association|
         join_associations.detect {|a| association == a} ||
-        build(association.reflection.name, association.find_parent_in(self))
+        build(association.reflection.name, association.find_parent_in(self), association.join_class)
       end
       self
     end
@@ -98,6 +98,20 @@ module MetaWhere
     
     included do
       alias_method_chain :aliased_table_name_for, :metawhere
+      alias_method_chain :join_relation, :metawhere
+    end
+    
+    def join_class
+      @join_class ||= Arel::InnerJoin
+    end
+    
+    def with_join_class(join_class)
+      @join_class = join_class
+      self
+    end
+    
+    def join_relation_with_metawhere(joining_relation, join = nil)
+      joining_relation.joins(self.with_join_class(Arel::OuterJoin))
     end
     
     def ==(other)

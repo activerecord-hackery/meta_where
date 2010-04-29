@@ -48,8 +48,8 @@ module MetaWhere
         @implicit_readonly = true
         
         case join
-        when ActiveRecord::Relation::JoinOperation
-          arel = arel.join(join.relation, join.join_class).on(*join.on)
+        when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+          arel = arel.join(join.relation, Arel::OuterJoin).on(*join.on)
         when Hash, Array, Symbol
           if array_of_strings?(join)
             join_string = join.join(' ')
@@ -61,6 +61,26 @@ module MetaWhere
       end
       
       arel
+    end
+    
+    def custom_join_sql(*joins)
+      arel = table
+      joins.each do |join|
+        next if join.blank?
+        
+        @implicit_readonly = true
+        
+        case join
+        when Hash, Array, Symbol
+          if array_of_strings?(join)
+            join_string = join.join(' ')
+            arel = arel.join(join_string)
+          end
+        else
+          arel = arel.join(join)
+        end
+      end
+      arel.joins(arel)
     end
         
     def build_arel_with_metawhere
@@ -75,12 +95,11 @@ module MetaWhere
         association_joins << join if [Hash, Array, Symbol].include?(join.class) && !array_of_strings?(join)
       end
       
-      non_association_joins = (joins - association_joins).reject {|j| j.blank?}
-      
-      custom_joins = build_custom_joins(non_association_joins)
+      stashed_association_joins = joins.select {|j| j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)}
+      non_association_joins = (joins - association_joins - stashed_association_joins).reject {|j| j.blank?}
+      custom_joins = custom_join_sql(*non_association_joins)
             
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins.to_sql)
-      to_join = []
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
       
       # Build wheres now to take advantage of autojoin if needed
       builder = MetaWhere::PredicateBuilder.new(join_dependency, @autojoin_value)
@@ -88,25 +107,29 @@ module MetaWhere
         w.respond_to?(:to_predicate) ? w.to_predicate(builder, join_dependency.join_base) : w
       }.flatten.uniq
       
-      @implicit_readonly = true unless association_joins.empty?
+      join_dependency.graft(*stashed_association_joins)
+      
+      @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
+      
+      to_join = []
       
       join_dependency.join_associations.each do |association|
         if (association_relation = association.relation).is_a?(Array)
-          to_join << [association_relation.first, association.association_join.first]
-          to_join << [association_relation.last, association.association_join.last]
+          to_join << [association_relation.first, association.join_class, association.association_join.first]
+          to_join << [association_relation.last, association.join_class, association.association_join.last]
         else
-          to_join << [association_relation, association.association_join]
+          to_join << [association_relation, association.join_class, association.association_join]
         end
       end
       
       to_join.each do |tj|
-        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] }
+        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
           joined_associations << tj
-          arel = arel.join(tj[0]).on(*tj[1])
+          arel = arel.join(tj[0], tj[1]).on(*tj[2])
         end
       end
       
-      arel = build_custom_joins(non_association_joins, arel)
+      arel = arel.join(custom_joins)
       
       predicate_wheres.each do |where|
         next if where.blank?
