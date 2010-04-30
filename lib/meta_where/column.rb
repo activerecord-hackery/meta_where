@@ -11,14 +11,16 @@ module MetaWhere
       MetaWhere::Condition.new(column, value, method)
     end
     
-    def eql?(other_column)
+    def ==(other_column)
       other_column.is_a?(Column)    &&
-      column == other_column.column &&
-      method == other_column.method
+      other_column.column == column &&
+      other_column.method == method
     end
     
+    alias_method :eql?, :==
+    
     def hash
-      (column + '#' + method).hash
+      [column, method].hash
     end
     
     # Play "nicely" with expand_hash_conditions_for_aggregates

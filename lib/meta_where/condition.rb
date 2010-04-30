@@ -9,7 +9,7 @@ module MetaWhere
     def initialize(column, value, method)
       @column = column.to_s
       @value = value
-      @method = MetaWhere::METHOD_ALIASES[method.to_s] || method
+      @method = (MetaWhere::METHOD_ALIASES[method.to_s] || method).to_s
     end
     
     def to_predicate(builder, parent = nil)
@@ -24,6 +24,15 @@ module MetaWhere
       end
       attribute.send(method, *args_for_predicate(method.to_s, value))
     end
+    
+    def ==(other_condition)
+      other_condition.is_a?(Condition) &&
+      other_condition.column == column &&
+      other_condition.value = value    &&
+      other_condition.method == method
+    end
+    
+    alias_method :eql?, :==
     
     def |(other)
       Or.new(self, other)
