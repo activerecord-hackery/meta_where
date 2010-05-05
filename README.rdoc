@@ -215,7 +215,7 @@ in MetaWhere, but I don't really use the main arel fork in my day-to-day develop
 can't be sure.
 
 Two things you will definitely not get without my fork (at the time of this writing) are
-the <tt>:notmatches</tt> (NOT LIKE) and <tt>:notin</tt> (NOT IN (val1, val2)) predications.
+the <tt>:not_matches</tt> (NOT LIKE) and <tt>:not_in</tt> (NOT IN (val1, val2)) predications.
 
 == Thanks
 A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch

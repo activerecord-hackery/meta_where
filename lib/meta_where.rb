@@ -1,15 +1,13 @@
 require 'arel'
 
 module MetaWhere
-  NOT = Arel::Attribute::Predications.instance_methods.map(&:to_s).include?('noteq') ? :noteq : :not
-  
   METHOD_ALIASES = {
-    'ne' => NOT,
+    'ne' => :not_eq,
     'like' => :matches,
-    'nlike' => :notmatches,
+    'nlike' => :not_matches,
     'lte' => :lteq,
     'gte' => :gteq,
-    'nin' => :notin
+    'nin' => :not_in
   }
 end
 

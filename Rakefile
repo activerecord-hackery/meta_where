@@ -28,6 +28,9 @@ end
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
+  test.libs << 'vendor/rails/activerecord/lib'
+  test.libs << 'vendor/rails/activesupport/lib'
+  test.libs << 'vendor/arel/lib'
   test.pattern = 'test/**/test_*.rb'
   test.verbose = true
 end
