@@ -183,7 +183,7 @@ With MetaWhere:
      ON "comments"."article_id" = "articles"."id" WHERE (("comments"."body" = 'hey'))
 
 Of course, it's even simpler with <tt>autojoin</tt>, but the general idea is that if an
-association with the name provided exists, MetaWhere::PredicateBuilder will build the
+association with the name provided exists, MetaWhere::Builder will build the
 conditions against that association's table, before falling back to a standard table name
 scheme. It also handles nested associations:
 
@@ -203,6 +203,24 @@ scheme. It also handles nested associations:
       AND "other_comments_articles"."body" = 'hey'))
 
 Contrived example, I'll admit -- but I'll bet you can think of some uses for this.
+
+== Enhanced order clauses
+
+If you are used to doing stuff like <tt>Article.order('title asc')</tt>, that will still
+work as you expect. However, if you pass symbols or arrays in to the <tt>order</tt> method,
+you can take advantage of intelligent association detection (as with "Intelligent hash condition
+mapping," above) and also some convenience methods for ascending and descending sorts.
+
+  Article.order(
+    :title.desc,
+    :comments => [:created_at.asc, :updated_at]
+  ).autojoin.to_sql
+  => SELECT "articles".* FROM "articles"
+     INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
+     ORDER BY  "articles"."title" DESC,
+       "comments"."created_at" ASC, "comments"."updated_at"
+
+As you can see, autojoin will work with these associations as well.
 
 == My Arel fork
 If you encounter any strange behavior, try adding the following to your Gemfile:

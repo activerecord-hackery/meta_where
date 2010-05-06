@@ -1,7 +1,7 @@
 require 'meta_where/utility'
 
 module MetaWhere
-  class PredicateBuilder
+  class Builder
     include MetaWhere::Utility
     
     def initialize(join_dependency, autojoin = false)
@@ -21,13 +21,13 @@ module MetaWhere
       end
     end
     
-    def build_from_hash(attributes, parent = nil)
+    def build_predicates_from_hash(attributes, parent = nil)
       table = build_table(parent)
       predicates = attributes.map do |column, value|
         if value.is_a?(Hash)
           association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
-          build_from_hash(value, association || column)
-        elsif value.is_a?(Array) && value.all? {|v| v.is_a?(MetaWhere::Condition) || v.is_a?(Hash)}
+          build_predicates_from_hash(value, association || column)
+        elsif value.is_a?(Array) && value.all? {|v| v.respond_to?(:to_predicate)}
           association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
           value.map {|val| val.to_predicate(self, association || column)}
         else
@@ -57,6 +57,24 @@ module MetaWhere
       end
 
       predicates.flatten
+    end
+    
+    def build_attributes_from_hash(attributes, parent = nil)
+      table = build_table(parent)
+      built_attributes = attributes.map do |column, value|
+        if value.is_a?(Hash)
+          association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
+          build_attributes_from_hash(value, association || column)
+        elsif value.is_a?(Array) && value.all? {|v| v.respond_to?(:to_attribute)}
+          association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
+          value.map {|val| val.to_attribute(self, association || column)}
+        else
+          association = parent.is_a?(Symbol) ? nil : @join_dependency.send(@association_finder, column, parent)
+          value.respond_to?(:to_attribute) ? value.to_attribute(self, association || column) : value
+        end
+      end
+
+      built_attributes.flatten
     end
     
   end

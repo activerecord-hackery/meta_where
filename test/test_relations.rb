@@ -75,7 +75,8 @@ class TestRelations < Test::Unit::TestCase
     end
     
     should "allow combinations of options that no sane developer would ever try to use" do
-      assert_equal @r.joins(:data_types, :developers => [:projects, :notes]).
+      assert_equal @r.find_all_by_name('Initech'),
+                   @r.joins(:data_types, :developers => [:projects, :notes]).
                      where(
                       {
                         :data_types => [:dec > 3, {:bln.eq => true}]
@@ -93,12 +94,12 @@ class TestRelations < Test::Unit::TestCase
                           :notes => [:note.matches % '%straight shooter%']
                         }
                       }
-                     ).uniq,
-                   @r.find_all_by_name('Initech')
+                     ).uniq
     end
     
     should "autojoin associations when requested" do
-      assert_equal @r.where(
+      assert_equal @r.find_all_by_name('Initech'),
+                   @r.where(
                      {
                        :data_types => [:dec > 3, {:bln.eq => true}]
                      } &
@@ -115,8 +116,27 @@ class TestRelations < Test::Unit::TestCase
                          :notes => [:note.matches % '%straight shooter%']
                        }
                      }
-                   ).autojoin.uniq,
-                   @r.find_all_by_name('Initech')
+                   ).autojoin.uniq
+    end
+    
+    should "allow ordering by attributes in ascending order" do
+      last_created = @r.all.sort {|a, b| a.created_at <=> b.created_at}.last
+      assert_equal last_created, @r.order(:created_at.asc).last
+    end
+    
+    should "allow ordering by attributes in descending order" do
+      last_created = @r.all.sort {|a, b| a.created_at <=> b.created_at}.last
+      assert_equal last_created, @r.order(:created_at.desc).first
+    end
+    
+    should "allow ordering by attributes on nested associations" do
+      highest_paying = Developer.order(:salary.desc).first.company
+      assert_equal highest_paying, @r.joins(:developers).order(:developers => :salary.desc).first
+    end
+    
+    should "autojoin based on ordering by attributes on nested associations" do
+      highest_paying = Developer.order(:salary.desc).first.company
+      assert_equal highest_paying, @r.order(:developers => :salary.desc).autojoin.first
     end
   end
 end

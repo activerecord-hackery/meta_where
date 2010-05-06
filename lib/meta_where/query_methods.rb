@@ -102,10 +102,15 @@ module MetaWhere
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
       
       # Build wheres now to take advantage of autojoin if needed
-      builder = MetaWhere::PredicateBuilder.new(join_dependency, @autojoin_value)
-      predicate_wheres = @where_values.map { |w|
+      builder = MetaWhere::Builder.new(join_dependency, @autojoin_value)
+      predicate_wheres = @where_values.map {|w|
         w.respond_to?(:to_predicate) ? w.to_predicate(builder, join_dependency.join_base) : w
       }.flatten.uniq
+      
+      order_attributes = @order_values.map {|o|
+        o.respond_to?(:to_attribute) ? o.to_attribute(builder, join_dependency.join_base) : o
+      }.flatten.uniq.select {|o| o.present?}
+      order_attributes.map! {|a| Arel::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
       
       join_dependency.graft(*stashed_association_joins)
       
@@ -150,14 +155,10 @@ module MetaWhere
       arel = arel.take(@limit_value) if @limit_value.present?
       arel = arel.skip(@offset_value) if @offset_value.present?
 
-      @group_values.uniq.each do |g|
-        arel = arel.group(g) if g.present?
-      end
-
-      @order_values.uniq.each do |o|
-        arel = arel.order(Arel::SqlLiteral.new(o.to_s)) if o.present?
-      end
-
+      arel = arel.group(*@group_values.uniq.select{|g| g.present?})
+      
+      arel = arel.order(*order_attributes) if order_attributes.present?
+      
       selects = @select_values.uniq
 
       quoted_table_name = @klass.quoted_table_name
