@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-05-06}
+  s.date = %q{2010-05-08}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
      "VERSION",
      "lib/core_ext/hash.rb",
      "lib/core_ext/symbol.rb",
+     "lib/core_ext/symbol_operators.rb",
      "lib/meta_where.rb",
      "lib/meta_where/builder.rb",
      "lib/meta_where/column.rb",
@@ -57,7 +58,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/ernie/meta_where}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6.1}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{Get the power of Arel predications (comparison methods) in your ActiveRecord condition hashes.}
   s.test_files = [
     "test/fixtures/company.rb",
