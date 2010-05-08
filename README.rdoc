@@ -44,8 +44,12 @@ They also work in named scopes as you would expect.
   => SELECT "articles".* FROM "articles"
      WHERE ("articles"."created_at" > '2010-04-01 18:54:37.030951')
 
-=== Operators
+=== Operators (Optionally)
 Additionally, you can use certain operators as shorthand for certain Arel predication methods.
+
+These are disabled by default, but can be enabled by calling MetaWhere.operator_overload! during
+your app's initialization process.
+
 These are experimental at this point and subject to change. Keep in mind that if you don't want
 to enclose other conditions in {}, you should place operator conditions before any hash conditions.
 

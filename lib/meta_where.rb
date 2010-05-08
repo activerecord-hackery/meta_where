@@ -9,6 +9,10 @@ module MetaWhere
     'gte' => :gteq,
     'nin' => :not_in
   }
+  
+  def self.operator_overload!
+    require 'core_ext/symbol_operators'
+  end
 end
 
 require 'active_record'
