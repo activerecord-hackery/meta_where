@@ -139,4 +139,52 @@ class TestRelations < Test::Unit::TestCase
       assert_equal highest_paying, @r.order(:developers => :salary.desc).autojoin.first
     end
   end
+  
+  context "A Person relation" do
+    setup do
+      @r = Person.scoped
+    end
+    
+    context "with self-referencing joins" do
+      setup do
+        @r = @r.where(:children => {:children => {:name => 'Jacob'}}).autojoin
+      end
+      
+      should "join the table multiple times with aliases" do
+        assert_equal 2, @r.to_sql.scan('INNER JOIN').size
+        assert_match /INNER JOIN "people" "children_people"/, @r.to_sql
+        assert_match /INNER JOIN "people" "children_people_2"/, @r.to_sql
+      end
+      
+      should "place the condition on the correct join" do
+        assert_match /"children_people_2"."name" = 'Jacob'/, @r.to_sql
+      end
+      
+      should "return the expected result" do
+        assert_equal Person.where(:name => 'Abraham'), @r.all
+      end
+    end
+    
+    context "with self-referencing joins on parent and children" do
+      setup do
+        @r = @r.where(:children => {:children => {:parent => {:parent => {:name => 'Abraham'}}}}).autojoin
+      end
+      
+      should "join the table multiple times with aliases" do
+        assert_equal 4, @r.to_sql.scan('INNER JOIN').size
+        assert_match /INNER JOIN "people" "children_people"/, @r.to_sql
+        assert_match /INNER JOIN "people" "children_people_2"/, @r.to_sql
+        assert_match /INNER JOIN "people" "parents_people"/, @r.to_sql
+        assert_match /INNER JOIN "people" "parents_people_2"/, @r.to_sql
+      end
+      
+      should "place the condition on the correct join" do
+        assert_match /"parents_people_2"."name" = 'Abraham'/, @r.to_sql
+      end
+      
+      should "return the expected result" do
+        assert_equal Person.where(:name => 'Abraham'), @r.all
+      end
+    end
+  end
 end

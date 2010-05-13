@@ -43,5 +43,10 @@ ActiveRecord::Schema.define do
     t.binary   "bin"
     t.boolean  "bln"
   end
+  
+  create_table "people", :force => true do |t|
+    t.integer  "parent_id"
+    t.string   "name"
+  end
 
 end
