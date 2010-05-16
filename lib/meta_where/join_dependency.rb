@@ -87,10 +87,10 @@ module MetaWhere
     extend ActiveSupport::Concern
     
     included do
-      remove_method :== if defined?(:==) # FIXME: For some reason, during testing, the singleton has a :==
+      alias_method :==, :eql?
     end
     
-    def ==(other)
+    def eql?(other)
       other.class == self.class &&
       other.active_record == active_record &&
       other.table_joins == table_joins
@@ -103,7 +103,7 @@ module MetaWhere
     included do
       alias_method_chain :aliased_table_name_for, :metawhere
       alias_method_chain :join_relation, :metawhere
-      remove_method :== if defined?(:==) # FIXME: For some reason, during testing, the singleton has a :==
+      alias_method :==, :eql?
     end
     
     def join_class
@@ -119,7 +119,7 @@ module MetaWhere
       joining_relation.joins(self.with_join_class(Arel::OuterJoin))
     end
     
-    def ==(other)
+    def eql?(other)
       other.class == self.class &&
       other.reflection == reflection &&
       other.parent == parent
