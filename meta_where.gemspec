@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-05-08}
+  s.date = %q{2010-05-20}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
      "lib/meta_where/compound.rb",
      "lib/meta_where/condition.rb",
      "lib/meta_where/join_dependency.rb",
-     "lib/meta_where/query_methods.rb",
+     "lib/meta_where/relation.rb",
      "lib/meta_where/utility.rb",
      "meta_where.gemspec",
      "test/fixtures/companies.yml",
@@ -49,6 +49,8 @@ Gem::Specification.new do |s|
      "test/fixtures/developers_projects.yml",
      "test/fixtures/note.rb",
      "test/fixtures/notes.yml",
+     "test/fixtures/people.yml",
+     "test/fixtures/person.rb",
      "test/fixtures/project.rb",
      "test/fixtures/projects.yml",
      "test/fixtures/schema.rb",
@@ -65,6 +67,7 @@ Gem::Specification.new do |s|
      "test/fixtures/data_type.rb",
      "test/fixtures/developer.rb",
      "test/fixtures/note.rb",
+     "test/fixtures/person.rb",
      "test/fixtures/project.rb",
      "test/fixtures/schema.rb",
      "test/helper.rb",

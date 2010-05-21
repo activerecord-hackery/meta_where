@@ -22,9 +22,9 @@ require 'meta_where/compound'
 require 'core_ext/symbol'
 require 'core_ext/hash'
 require 'meta_where/builder'
-require 'meta_where/query_methods'
+require 'meta_where/relation'
 require 'meta_where/join_dependency'
-ActiveRecord::Relation.send(:include, MetaWhere::QueryMethods)
+ActiveRecord::Relation.send(:include, MetaWhere::Relation)
 ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaWhere::JoinDependency)
 ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.send(:include, MetaWhere::JoinBase)
 ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation.send(:include, MetaWhere::JoinAssociation)

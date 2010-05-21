@@ -29,6 +29,24 @@ class TestRelations < Test::Unit::TestCase
       assert_equal results.first, Company.find_by_name('Initech')
     end
     
+    should "create new records with values from equality predicates" do
+      assert_equal "New Company",
+                   @r.where(:name => 'New Company').new.name
+      assert_equal "New Company",
+                   @r.where(:name.eq => 'New Company').new.name
+      assert_equal "New Company",
+                   @r.where(:name.eq % 'New Company').new.name
+    end
+    
+    should "create new records with values from equality predicates using last supplied predicate" do
+      assert_equal "Newer Company",
+                   @r.where(:name => 'New Company').where(:name => 'Newer Company').new.name
+      assert_equal "Newer Company",
+                   @r.where(:name.eq => 'New Company').where(:name.eq => 'Newer Company').new.name
+      assert_equal "Newer Company",
+                   @r.where(:name.eq % 'New Company').where(:name.eq % 'Newer Company').new.name
+    end
+    
     should "behave as expected with SQL interpolation" do
       results = @r.where('name like ?', '%tech')
       assert_equal 1, results.size

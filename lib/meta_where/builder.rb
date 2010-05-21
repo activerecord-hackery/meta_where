@@ -3,6 +3,7 @@ require 'meta_where/utility'
 module MetaWhere
   class Builder
     include MetaWhere::Utility
+    attr_reader :join_dependency
     
     def initialize(join_dependency, autojoin = false)
       @join_dependency = join_dependency

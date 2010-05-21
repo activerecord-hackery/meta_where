@@ -1,6 +1,6 @@
 class Hash
   def to_predicate(builder, parent = nil)
-    Arel::Predicates::All.new(*builder.build_predicates_from_hash(self, parent))
+    Arel::Predicates::All.new(*builder.build_predicates_from_hash(self, parent || builder.join_dependency.join_base))
   end
   
   def to_attribute(builder, parent = nil)
