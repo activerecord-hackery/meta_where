@@ -3,16 +3,24 @@
 MetaWhere puts the power of Arel predications (comparison methods) in your ActiveRecord
 condition hashes.
 
-MetaWhere offers the ability to call any Arel predicate methods (with a few convenient aliases)
-on your model's attributes instead of the ones normally offered by ActiveRecord's hash parameters.
+== Why?
 
-Normally, ActiveRecord interprets a conditions hash as an Arel predicate of type Equality or
-In, depending on whether you supply a single value or an array on the value side of the hash.
+<b>I hate SQL fragments in Rails code.</b> Resorting to <tt>where('name LIKE ?', '%something%')</tt> is an admission of defeat. It says, "I concede to allow your rigid, 1970's-era syntax into my elegant Ruby world of object oriented goodness." While sometimes such concessions are necessary, they should <em>always</em> be a last resort, because <b>once you move away from an abstract representation of your intended query, your query becomes more brittle.</b> You're now reduced to hacking about with regular expressions, string scans, and the occasional deferred variable interpolation trick (like '#{quoted_table_name}') in order to maintain some semblance of flexibility.
 
-MetaWhere allows you to specify what specific Arel "predication" method you would like to use.
-These are methods on attributes which cause Arel to generate different SQL on your behalf.
+It isn't that I hate SQL (much). I'm perfectly capable of constructing complex queries from scratch, and did more than my fair share before coming to the Rails world. It's that I hate the juxtaposition of SQL against Ruby. It's like seeing your arthritic grandfather hand in hand with some hot, flexible, yoga instructor. Good for him, but sooner or later something's going to get broken.  It's like a sentence which, tanpa alasan, perubahan ke bahasa lain, then back again ("for no reason, changes to another language" -- with thanks to Google Translate, and apologies to native speakers of Indonesian). It just feels <em>wrong</em>. It breaks the spell -- the "magic" that adds to programmer joy, and <em>for no good reason</em>.
 
-Examples speak louder than words, so read on.
+MetaWhere is a gem that sets out to right that wrong, and give tranquility to you, the Rails coder.
+
+== Getting started
+
+In your Gemfile:
+
+  gem "meta_where"  # Last officially released gem
+  # gem "meta_where", :git => "git://github.com/ernie/meta_where.git" # Track git repo
+
+or, to install as a plugin:
+
+  rails plugin install git://github.com/ernie/meta_where.git
 
 == Example usage
 
@@ -226,23 +234,16 @@ mapping," above) and also some convenience methods for ascending and descending 
 
 As you can see, autojoin will work with these associations as well.
 
-== My Arel fork
-If you encounter any strange behavior, try adding the following to your Gemfile:
-
-  gem 'arel', :git => "git://github.com/ernie/arel.git"
-
-This fork has some updates that have not yet been committed upstream, though I hope they
-will be. I think I covered all of the differences that break functionality with workarounds
-in MetaWhere, but I don't really use the main arel fork in my day-to-day development so I
-can't be sure.
-
-Two things you will definitely not get without my fork (at the time of this writing) are
-the <tt>:not_matches</tt> (NOT LIKE) and <tt>:not_in</tt> (NOT IN (val1, val2)) predications.
-
 == Thanks
 A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch
 I'd submitted, and his take on a DSL for query conditions, which was the inspiration for this
 gem.
+
+== Reporting issues
+
+=== Reporting issues
+
+Please report any issues using {Lighthouse}[http://metautonomous.lighthouseapp.com/projects/53011-metawhere/]. Thanks in advance for helping me improve MetaWhere!
 
 == Copyright
 

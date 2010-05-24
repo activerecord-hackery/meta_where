@@ -48,7 +48,8 @@ rescue LoadError
   end
 end
 
-task :test => :check_dependencies
+# Don't check dependencies since we're testing with vendored libraries
+# task :test => :check_dependencies
 
 task :default => :test
 
