@@ -7,17 +7,31 @@ module MetaWhere
       alias_method_chain :build_where, :metawhere
       alias_method_chain :reset, :metawhere
       alias_method_chain :scope_for_create, :metawhere
+      alias_method_chain :merge, :metawhere
+      
+      alias_method :&, :merge_with_metawhere
+      
       const_get("SINGLE_VALUE_METHODS").push(:autojoin) # I'm evil.
       attr_accessor :autojoin_value
-
-      class_eval <<-CEVAL, __FILE__
-        def autojoin(value = true, &block)
-          new_relation = clone
-          new_relation.send(:apply_modules, Module.new(&block)) if block_given?
-          new_relation.autojoin_value = value
-          new_relation
-        end
-      CEVAL
+    end
+    
+    def autojoin(value = true, &block)
+      new_relation = clone
+      new_relation.send(:apply_modules, Module.new(&block)) if block_given?
+      new_relation.autojoin_value = value
+      new_relation
+    end
+    
+    def merge_with_metawhere(r, association_name = nil)
+      if (r && klass != r.klass) # Merging relations with different base.
+        default_association = reflect_on_all_associations.detect {|a| a.klass == r.klass}
+        association_name ||= default_association ? default_association.name : r.table_name.to_sym
+        r = r.clone
+        r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
+        r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
+      end
+      
+      merge_without_metawhere(r)
     end
     
     def reset_with_metawhere
