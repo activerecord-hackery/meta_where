@@ -175,7 +175,7 @@ table that the conditions apply to:
      ON "comments"."article_id" = "articles"."id"
      WHERE ("comments"."body" = 'hey')
      
-This feels pretty magical at first, but the magic quickly breaks down/. Consider an
+This feels pretty magical at first, but the magic quickly breaks down. Consider an
 association named <tt>:other_comments</tt> that is just a condition against comments:
 
   Article.joins(:other_comments).where(:other_comments => {:body => 'hey'}).to_sql
@@ -215,6 +215,31 @@ scheme. It also handles nested associations:
       AND "other_comments_articles"."body" = 'hey'))
 
 Contrived example, I'll admit -- but I'll bet you can think of some uses for this.
+
+== Enhanced relation merges
+
+One of the changes MetaWhere makes to ActiveRecord is to delay "compiling" the
+where_values into actual Arel predicates until absolutely necessary. This allows
+for greater flexibility and last-second inference of associations/joins from any
+hashes supplied. A drawback of this method is that when merging relations, ActiveRecord
+just assumes that the values being merged are already firmed up against a specific table
+name and can just be thrown together. This isn't the case with MetaWhere, and would
+cause unexpected failures when merging. However, MetaWhere improves on the default
+ActiveRecord merge functionality in two ways. First, when called with 1 parameter,
+(as is always the case when using the & alias) MetaWhere will try to determine if
+an association exists between the two models involved in the merge. If it does, the
+association name will be used to construct criteria.
+
+Additionally, to cover times when detection is impossible, or the first detected
+association isn't the one you wanted, you can call merge with a second parameter,
+specifying the association to be used during the merge.
+
+This merge functionality allows you to do:
+
+  (Comment.where(:id < 7) & Article.where(:title =~ '%blah%')).autojoin.to_sql
+  => SELECT "comments".* FROM "comments" INNER JOIN "articles"
+     ON "articles"."id" = "comments"."article_id"
+     WHERE ("comments"."id" < 7) AND ("articles"."title" LIKE '%blah%')"
 
 == Enhanced order clauses
 

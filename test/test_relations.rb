@@ -158,6 +158,20 @@ class TestRelations < Test::Unit::TestCase
     end
   end
   
+  context "A merged relation" do
+    setup do
+      @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech')
+    end
+    
+    should "keep the table of the second relation intact in the query" do
+      assert_match /#{Company.quoted_table_name}."name"/, @r.joins(:company).to_sql
+    end
+    
+    should "autojoin and return expected results" do
+      assert_equal ['Peter Gibbons', 'Michael Bolton'], @r.autojoin.all.map(&:name)
+    end
+  end
+  
   context "A Person relation" do
     setup do
       @r = Person.scoped
