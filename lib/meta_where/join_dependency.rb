@@ -64,32 +64,4 @@ module MetaWhere
       end
     end
   end
-
-  module JoinBase
-    extend ActiveSupport::Concern
-
-    included do
-      alias_method :==, :eql?
-    end
-
-    def eql?(other)
-      other.class == self.class &&
-      other.active_record == active_record &&
-      other.table_joins == table_joins
-    end
-  end
-
-  module JoinAssociation
-    extend ActiveSupport::Concern
-
-    included do
-      alias_method :==, :eql?
-    end
-
-    def eql?(other)
-      other.class == self.class &&
-      other.reflection == reflection &&
-      other.parent == parent
-    end
-  end
 end

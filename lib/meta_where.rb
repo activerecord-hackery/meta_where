@@ -9,7 +9,7 @@ module MetaWhere
     'gte' => :gteq,
     'nin' => :not_in
   }
-  
+
   def self.operator_overload!
     require 'core_ext/symbol_operators'
   end
@@ -26,5 +26,3 @@ require 'meta_where/relation'
 require 'meta_where/join_dependency'
 ActiveRecord::Relation.send(:include, MetaWhere::Relation)
 ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaWhere::JoinDependency)
-ActiveRecord::Associations::ClassMethods::JoinDependency::JoinBase.send(:include, MetaWhere::JoinBase)
-ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation.send(:include, MetaWhere::JoinAssociation)
