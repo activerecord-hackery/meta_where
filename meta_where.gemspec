@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     ".document",
      ".gitignore",
      ".gitmodules",
+     "Gemfile",
      "LICENSE",
      "README.rdoc",
      "Rakefile",
