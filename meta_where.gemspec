@@ -13,7 +13,8 @@ Gem::Specification.new do |s|
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
-      of the ones normally offered by ActiveRecord's hash parameters.
+      of the ones normally offered by ActiveRecord's hash parameters. If
+      you like the new AR 3.0 query interface, you'll love it with MetaWhere.
     }
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
