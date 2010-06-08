@@ -5,19 +5,20 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "meta_where"
-    gem.summary = %Q{Get the power of Arel predications (comparison methods) in your ActiveRecord condition hashes.}
+    gem.summary = %Q{Add a dash of Arel awesomeness to your condition hashes.}
     gem.description = %Q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
-      of the ones normally offered by ActiveRecord's hash parameters.
+      of the ones normally offered by ActiveRecord's hash parameters. If
+      you like the new AR 3.0 query interface, you'll love it with MetaWhere.
     }
     gem.email = "ernie@metautonomo.us"
-    gem.homepage = "http://github.com/ernie/meta_where"
+    gem.homepage = "http://metautonomo.us/projects/metawhere/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", ">= 3.0.0.beta3"
-    gem.add_dependency "activesupport", ">= 3.0.0.beta3"
-    gem.add_dependency "arel", ">= 0.3.3"
+    gem.add_dependency "activerecord", ">= 3.0.0.beta4"
+    gem.add_dependency "activesupport", ">= 3.0.0.beta4"
+    gem.add_dependency "arel", ">= 0.4.0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new

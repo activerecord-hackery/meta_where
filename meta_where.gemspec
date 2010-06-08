@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_where}
-  s.version = "0.4.0"
+  s.version = "0.5.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-05-24}
+  s.date = %q{2010-06-08}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -57,11 +57,11 @@ Gem::Specification.new do |s|
      "test/helper.rb",
      "test/test_relations.rb"
   ]
-  s.homepage = %q{http://github.com/ernie/meta_where}
+  s.homepage = %q{http://metautonomo.us/projects/metawhere/}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6}
-  s.summary = %q{Get the power of Arel predications (comparison methods) in your ActiveRecord condition hashes.}
+  s.rubygems_version = %q{1.3.7}
+  s.summary = %q{Add a dash of Arel awesomeness to your condition hashes.}
   s.test_files = [
     "test/fixtures/company.rb",
      "test/fixtures/data_type.rb",
@@ -78,22 +78,22 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<shoulda>, [">= 0"])
-      s.add_runtime_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
-      s.add_runtime_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
-      s.add_runtime_dependency(%q<arel>, [">= 0.3.3"])
+      s.add_runtime_dependency(%q<activerecord>, [">= 3.0.0.beta4"])
+      s.add_runtime_dependency(%q<activesupport>, [">= 3.0.0.beta4"])
+      s.add_runtime_dependency(%q<arel>, [">= 0.4.0"])
     else
       s.add_dependency(%q<shoulda>, [">= 0"])
-      s.add_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
-      s.add_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
-      s.add_dependency(%q<arel>, [">= 0.3.3"])
+      s.add_dependency(%q<activerecord>, [">= 3.0.0.beta4"])
+      s.add_dependency(%q<activesupport>, [">= 3.0.0.beta4"])
+      s.add_dependency(%q<arel>, [">= 0.4.0"])
     end
   else
     s.add_dependency(%q<shoulda>, [">= 0"])
-    s.add_dependency(%q<activerecord>, [">= 3.0.0.beta3"])
-    s.add_dependency(%q<activesupport>, [">= 3.0.0.beta3"])
-    s.add_dependency(%q<arel>, [">= 0.3.3"])
+    s.add_dependency(%q<activerecord>, [">= 3.0.0.beta4"])
+    s.add_dependency(%q<activesupport>, [">= 3.0.0.beta4"])
+    s.add_dependency(%q<arel>, [">= 0.4.0"])
   end
 end
 
