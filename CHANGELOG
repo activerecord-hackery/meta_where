@@ -1,0 +1,12 @@
+Changes since 0.5.1 (2010-06-22):
+  * Added debug_sql method to Relations. Lets you see the actual SQL that
+    will be run against the database without having to resort to the
+    development.log. Differs from to_sql because that doesn't (and can't,
+    by necessity) handle eager loading.
+
+Changes since 0.5.0 (2010-06-08):
+  * Track Emilio Tagua's performance enhancements in build_arel from edge.
+
+Changes since 0.3.3 (2010-04-30):
+  * Lots. See http://metautonomo.us/2010/06/08/metasearch-and-metawhere-0-5-0-released/
+    for a summary.
