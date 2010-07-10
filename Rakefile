@@ -9,8 +9,11 @@ begin
     gem.description = %Q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
-      of the ones normally offered by ActiveRecord's hash parameters. If
-      you like the new AR 3.0 query interface, you'll love it with MetaWhere.
+      of the ones normally offered by ActiveRecord's hash parameters. It also
+      adds convenient syntax for order clauses, smarter mapping of nested hash
+      conditions, and a debug_sql method to see the real SQL your code is
+      generating without running it against the database. If you like the new
+      AR 3.0 query interface, you'll love it with MetaWhere.
     }
     gem.email = "ernie@metautonomo.us"
     gem.homepage = "http://metautonomo.us/projects/metawhere/"

@@ -5,16 +5,19 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_where}
-  s.version = "0.5.1"
+  s.version = "0.5.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-06-22}
+  s.date = %q{2010-07-09}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
-      of the ones normally offered by ActiveRecord's hash parameters. If
-      you like the new AR 3.0 query interface, you'll love it with MetaWhere.
+      of the ones normally offered by ActiveRecord's hash parameters. It also
+      adds convenient syntax for order clauses, smarter mapping of nested hash
+      conditions, and a debug_sql method to see the real SQL your code is
+      generating without running it against the database. If you like the new
+      AR 3.0 query interface, you'll love it with MetaWhere.
     }
   s.email = %q{ernie@metautonomo.us}
   s.extra_rdoc_files = [
@@ -25,6 +28,7 @@ Gem::Specification.new do |s|
     ".document",
      ".gitignore",
      ".gitmodules",
+     "CHANGELOG",
      "Gemfile",
      "LICENSE",
      "README.rdoc",
