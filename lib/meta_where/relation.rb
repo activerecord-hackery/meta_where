@@ -124,6 +124,22 @@ module MetaWhere
       remove_conflicting_equality_predicates(flatten_predicates(@where_values, builder))
     end
 
+    # Simulate the logic that occurs in ActiveRecord::Relation.to_a
+    #
+    # @records = eager_loading? ? find_with_associations : @klass.find_by_sql(arel.to_sql)
+    #
+    # This will let us get a dump of the SQL that will be run against the DB for debug
+    # purposes without actually running the query.
+    def debug_sql
+      if eager_loading?
+        including = (@eager_load_values + @includes_values).uniq
+        join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+        construct_relation_for_association_find(join_dependency).to_sql
+      else
+        arel.to_sql
+      end
+    end
+
     def build_arel_with_metawhere
       arel = table
 
