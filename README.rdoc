@@ -30,7 +30,7 @@ You can use MetaWhere in your usual method chain:
   Article.where(:title.matches => 'Hello%', :created_at.gt => 3.days.ago)
   => SELECT "articles".* FROM "articles" WHERE ("articles"."title" LIKE 'Hello%')
      AND ("articles"."created_at" > '2010-04-12 18:39:32.592087')
-     
+
 === Find condition hash
 You can also use similar syntax in a conditions hash supplied to ActiveRecord::Base#find:
 
@@ -47,7 +47,7 @@ They also work in named scopes as you would expect.
   class Article
     scope :recent, lambda {|v| where(:created_at.gt => v.days.ago)}
   end
-  
+
   Article.recent(14).to_sql
   => SELECT "articles".* FROM "articles"
      WHERE ("articles"."created_at" > '2010-04-01 18:54:37.030951')
@@ -103,7 +103,7 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
   => SELECT "articles".* FROM "articles" WHERE
      ((("articles"."created_at" < '2010-04-16 00:26:30.629467')
      AND ("articles"."created_at" > '2009-04-16 00:26:30.629526')))
-  
+
 <b>With both hashes and substitutions:</b>
   Article.where(
     :title.matches % 'Hello%' &
@@ -130,7 +130,7 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
      FROM "articles"
        INNER JOIN "comments"
        ON "comments"."article_id" = "articles"."id"
-     WHERE 
+     WHERE
      ((
        "articles"."title" = 'Greetings'
        OR
@@ -144,7 +144,7 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
          )
          AND "comments"."body" LIKE '%first post!%'
        )
-     )) 
+     ))
 
 (*) Formatting added for clarity. I said you could do this, not that you should. :)
 
@@ -170,11 +170,11 @@ PredicateBuilder (the part of ActiveRecord responsible for turning your conditio
 hash into a valid SQL query) will allow you to nest conditions in order to specify a
 table that the conditions apply to:
 
-  Article.joins(:comments).where(:comments => {:body => 'hey'}).to_sql 
+  Article.joins(:comments).where(:comments => {:body => 'hey'}).to_sql
   => SELECT "articles".* FROM "articles" INNER JOIN "comments"
      ON "comments"."article_id" = "articles"."id"
      WHERE ("comments"."body" = 'hey')
-     
+
 This feels pretty magical at first, but the magic quickly breaks down. Consider an
 association named <tt>:other_comments</tt> that is just a condition against comments:
 
@@ -191,7 +191,7 @@ You'd need to do...
 With MetaWhere:
 
   Article.joins(:other_comments).where(:other_comments => {:body => 'hey'}).to_sql
-  => SELECT "articles".* FROM "articles" INNER JOIN "comments" 
+  => SELECT "articles".* FROM "articles" INNER JOIN "comments"
      ON "comments"."article_id" = "articles"."id" WHERE (("comments"."body" = 'hey'))
 
 Of course, it's even simpler with <tt>autojoin</tt>, but the general idea is that if an
@@ -264,11 +264,14 @@ A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib ab
 I'd submitted, and his take on a DSL for query conditions, which was the inspiration for this
 gem.
 
-== Reporting issues
+== Contributions
 
-=== Reporting issues
+There are several ways you can help MetaWhere continue to improve.
 
-Please report any issues using {Lighthouse}[http://metautonomous.lighthouseapp.com/projects/53011-metawhere/]. Thanks in advance for helping me improve MetaWhere!
+* Use MetaWhere in your real-world projects and {submit bug reports or feature suggestions}[http://metautonomous.lighthouseapp.com/projects/53011-metawhere/].
+* Better yet, if you’re so inclined, fix the issue yourself and submit a patch! Or you can {fork the project on GitHub}[http://github.com/ernie/meta_where] and send me a pull request (please include tests!)
+* If you like MetaWhere, spread the word. More users == more eyes on code == more bugs getting found == more bugs getting fixed (hopefully!)
+* Lastly, if MetaWhere has saved you hours of development time on your latest Rails gig, and you’re feeling magnanimous, please consider {making a donation}[http://pledgie.com/campaigns/10096] to the project. I have spent hours of my personal time coding and supporting MetaWhere, and your donation would go a great way toward justifying that time spent to my loving wife. :)
 
 == Copyright
 

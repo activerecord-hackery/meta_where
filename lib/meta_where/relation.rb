@@ -201,18 +201,7 @@ module MetaWhere
 
       arel = arel.order(*order_attributes) if order_attributes.present?
 
-      selects = @select_values.uniq
-
-      quoted_table_name = @klass.quoted_table_name
-
-      if selects.present?
-        selects.each do |s|
-          @implicit_readonly = false
-          arel = arel.project(s) if s.present?
-        end
-      else
-        arel = arel.project(quoted_table_name + '.*')
-      end
+      arel = build_select(arel, @select_values.uniq)
 
       arel = arel.from(@from_value) if @from_value.present?
 
