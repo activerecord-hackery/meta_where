@@ -10,16 +10,6 @@ module MetaWhere
       alias_method_chain :merge, :metawhere
 
       alias_method :&, :merge_with_metawhere
-
-      const_get("SINGLE_VALUE_METHODS").push(:autojoin) # I'm evil.
-      attr_accessor :autojoin_value
-    end
-
-    def autojoin(value = true, &block)
-      new_relation = clone
-      new_relation.send(:apply_modules, Module.new(&block)) if block_given?
-      new_relation.autojoin_value = value
-      new_relation
     end
 
     def merge_with_metawhere(r, association_name = nil)
@@ -31,7 +21,7 @@ module MetaWhere
         r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
       end
 
-      merge_without_metawhere(r)
+      joins(association_name).merge_without_metawhere(r)
     end
 
     def reset_with_metawhere
@@ -120,7 +110,7 @@ module MetaWhere
 
     def predicate_wheres
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-      builder = MetaWhere::Builder.new(join_dependency, @autojoin_value)
+      builder = MetaWhere::Builder.new(join_dependency)
       remove_conflicting_equality_predicates(flatten_predicates(@where_values, builder))
     end
 
@@ -143,42 +133,13 @@ module MetaWhere
     def build_arel_with_metawhere
       arel = table
 
-      joined_associations = []
-
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
 
-      # Build wheres now to take advantage of autojoin if needed
-      builder = MetaWhere::Builder.new(join_dependency, @autojoin_value)
+      builder = MetaWhere::Builder.new(join_dependency)
+
+      arel = build_intelligent_joins(arel, builder) if @joins_values.present?
+
       predicate_wheres = remove_conflicting_equality_predicates(flatten_predicates(@where_values, builder))
-
-      order_attributes = @order_values.map {|o|
-        o.respond_to?(:to_attribute) ? o.to_attribute(builder, join_dependency.join_base) : o
-      }.flatten.uniq.select {|o| o.present?}
-      order_attributes.map! {|a| Arel::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
-
-      join_dependency.graft(*stashed_association_joins)
-
-      @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
-
-      to_join = []
-
-      join_dependency.join_associations.each do |association|
-        if (association_relation = association.relation).is_a?(Array)
-          to_join << [association_relation.first, association.join_class, association.association_join.first]
-          to_join << [association_relation.last, association.join_class, association.association_join.last]
-        else
-          to_join << [association_relation, association.join_class, association.association_join]
-        end
-      end
-
-      to_join.each do |tj|
-        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
-          joined_associations << tj
-          arel = arel.join(tj[0], tj[1]).on(*tj[2])
-        end
-      end
-
-      arel = arel.join(custom_joins)
 
       predicate_wheres.each do |where|
         next if where.blank?
@@ -199,7 +160,7 @@ module MetaWhere
 
       arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
 
-      arel = arel.order(*order_attributes) if order_attributes.present?
+      arel = build_order(arel, builder, @order_values) if @order_values.present?
 
       arel = build_select(arel, @select_values.uniq)
 
@@ -216,6 +177,42 @@ module MetaWhere
     end
 
     private
+
+    def build_intelligent_joins(arel, builder)
+      joined_associations = []
+
+      builder.join_dependency.graft(*stashed_association_joins)
+
+      @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
+
+      to_join = []
+
+      builder.join_dependency.join_associations.each do |association|
+        if (association_relation = association.relation).is_a?(Array)
+          to_join << [association_relation.first, association.join_class, association.association_join.first]
+          to_join << [association_relation.last, association.join_class, association.association_join.last]
+        else
+          to_join << [association_relation, association.join_class, association.association_join]
+        end
+      end
+
+      to_join.each do |tj|
+        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
+          joined_associations << tj
+          arel = arel.join(tj[0], tj[1]).on(*tj[2])
+        end
+      end
+
+      arel = arel.join(custom_joins)
+    end
+
+    def build_order(arel, builder, orders)
+      order_attributes = orders.map {|o|
+        o.respond_to?(:to_attribute) ? o.to_attribute(builder, builder.join_dependency.join_base) : o
+      }.flatten.uniq.select {|o| o.present?}
+      order_attributes.map! {|a| Arel::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
+      order_attributes.present? ? arel.order(*order_attributes) : arel
+    end
 
     def remove_conflicting_equality_predicates(predicates)
       predicates.reverse.inject([]) { |ary, w|

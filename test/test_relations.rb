@@ -115,28 +115,6 @@ class TestRelations < Test::Unit::TestCase
                      ).uniq
     end
 
-    should "autojoin associations when requested" do
-      assert_equal @r.find_all_by_name('Initech'),
-                   @r.where(
-                     {
-                       :data_types => [:dec > 3, {:bln.eq => true}]
-                     } &
-                     {
-                       :developers => {
-                         :name.like => 'Peter Gibbons'
-                       }
-                     } &
-                     {
-                       :developers => {
-                         :projects => {
-                           :estimated_hours.gteq => 1000
-                         },
-                         :notes => [:note.matches % '%straight shooter%']
-                       }
-                     }
-                   ).autojoin.uniq
-    end
-
     should "allow ordering by attributes in ascending order" do
       last_created = @r.all.sort {|a, b| a.created_at <=> b.created_at}.last
       assert_equal last_created, @r.order(:created_at.asc).last
@@ -150,11 +128,6 @@ class TestRelations < Test::Unit::TestCase
     should "allow ordering by attributes on nested associations" do
       highest_paying = Developer.order(:salary.desc).first.company
       assert_equal highest_paying, @r.joins(:developers).order(:developers => :salary.desc).first
-    end
-
-    should "autojoin based on ordering by attributes on nested associations" do
-      highest_paying = Developer.order(:salary.desc).first.company
-      assert_equal highest_paying, @r.order(:developers => :salary.desc).autojoin.first
     end
 
     context "with eager-loaded developers" do
@@ -178,11 +151,26 @@ class TestRelations < Test::Unit::TestCase
     end
 
     should "keep the table of the second relation intact in the query" do
-      assert_match /#{Company.quoted_table_name}."name"/, @r.joins(:company).to_sql
+      assert_match /#{Company.quoted_table_name}."name"/, @r.to_sql
     end
 
-    should "autojoin and return expected results" do
-      assert_equal ['Peter Gibbons', 'Michael Bolton'], @r.autojoin.all.map(&:name)
+    should "return expected results" do
+      assert_equal ['Peter Gibbons', 'Michael Bolton'], @r.all.map(&:name)
+    end
+  end
+
+  context "A merged relation with an alternate association" do
+    setup do
+      @r = Company.scoped.merge(Developer.where(:salary.gt => 70000), :slackers)
+    end
+
+    should "use the proper association" do
+      assert_match Company.joins(:slackers).where(:slackers => {:salary.gt => 70000}).to_sql,
+                   @r.to_sql
+    end
+
+    should "return expected results" do
+      assert_equal ['Initech', 'Advanced Optical Solutions'], @r.all.map(&:name)
     end
   end
 
@@ -193,7 +181,7 @@ class TestRelations < Test::Unit::TestCase
 
     context "with self-referencing joins" do
       setup do
-        @r = @r.where(:children => {:children => {:name => 'Jacob'}}).autojoin
+        @r = @r.where(:children => {:children => {:name => 'Jacob'}}).joins(:children => :children)
       end
 
       should "join the table multiple times with aliases" do
@@ -213,7 +201,8 @@ class TestRelations < Test::Unit::TestCase
 
     context "with self-referencing joins on parent and children" do
       setup do
-        @r = @r.where(:children => {:children => {:parent => {:parent => {:name => 'Abraham'}}}}).autojoin
+        @r = @r.where(:children => {:children => {:parent => {:parent => {:name => 'Abraham'}}}})
+               .joins(:children => {:children => {:parent => :parent}})
       end
 
       should "join the table multiple times with aliases" do

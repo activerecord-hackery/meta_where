@@ -1,3 +1,16 @@
+Changes since 0.5.2 (2010-07-09):
+  * Removed autojoin. Inner joins have side-effects. Newbies are the ones who aremost
+    likely to use autojoin, and they're also the ones least likely to understand why
+    certain rows stop being returned. Better to force a small learning curve. I've
+    decided against leaving it in with deprecation since Rails 3 isn't final yet.
+    Decided to get it out before it's "too late" to do so without impacting code running
+    on a stable version of Rails.
+  * Refactored build_arel to more closely mirror the refactoring that's been going on
+    to the method in Rails edge.
+  * Improved merge functonality. It shouldn't have ever required someone to do an
+    autojoin to begin with. Now it just works. If you're merging two relations, you
+    should expect to only get results that have a match on both sides.
+
 Changes since 0.5.1 (2010-06-22):
   * Added debug_sql method to Relations. Lets you see the actual SQL that
     will be run against the database without having to resort to the

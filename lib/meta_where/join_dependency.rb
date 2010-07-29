@@ -35,32 +35,12 @@ module MetaWhere
       end
     end
 
-    def find_or_build_join_association(name, parent)
-      unless parent.respond_to?(:reflections)
-        raise ArgumentError, "Parent ('#{parent.class}') is not reflectable (must be JoinBase or JoinAssociation)"
-      end
-
-      raise ArgumentError, "#{name} is not a Symbol" unless name.is_a?(Symbol)
-
-      build(name, parent)
-    rescue AssociationNotFoundError
-      nil
-    end
-
     def find_join_association(name_or_reflection, parent)
       case name_or_reflection
       when Symbol, String
         join_associations.detect {|j| (j.reflection.name == name_or_reflection.to_s.intern) && (j.parent == parent)}
       else
         join_associations.detect {|j| (j.reflection == name_or_reflection) && (j.parent == parent)}
-      end
-    end
-
-    def merge(other_join_dependency)
-      if self.join_base == other_join_dependency.join_base
-        self.graft(*other_join_dependency.join_associations)
-      else
-        raise BaseMismatchError, "Can't merge a join dependency with a different join base."
       end
     end
   end

@@ -150,18 +150,6 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
 
 === But wait, there's more!
 
-== Autojoin
-Normally, you have to be sure to join (or include, which will join if conditions warrant)
-any associations that you're including in your wheres. With MetaWhere, you can just build
-up your relation's conditions, and tack an <tt>autojoin</tt> anywhere in the chain. MetaWhere
-will check out the associations you're using in your conditions and join them automatically
-(if they aren't already joined).
-
-  Article.where(:comments => [:body.like % '%FIRST POST%']).autojoin
-
-Remember that joins will return duplicate rows if your conditions don't prevent it, so
-you might want to tack on a <tt>uniq</tt> as well.
-
 == Intelligent hash condition mapping
 This is one of those things I hope you find so intuitive that you forget it wasn't
 built in already.
@@ -194,10 +182,9 @@ With MetaWhere:
   => SELECT "articles".* FROM "articles" INNER JOIN "comments"
      ON "comments"."article_id" = "articles"."id" WHERE (("comments"."body" = 'hey'))
 
-Of course, it's even simpler with <tt>autojoin</tt>, but the general idea is that if an
-association with the name provided exists, MetaWhere::Builder will build the
-conditions against that association's table, before falling back to a standard table name
-scheme. It also handles nested associations:
+The general idea is that if an association with the name provided exists, MetaWhere::Builder
+will build the conditions against that association's table as it's been aliased, before falling
+back to assuming you're specifying a table by name. It also handles nested associations:
 
   Article.where(
     :comments => {
@@ -205,7 +192,10 @@ scheme. It also handles nested associations:
       :moderations => [:value < 0]
     },
     :other_comments => {:body => 'hey'}
-  ).autojoin.to_sql
+  ).joins(
+    {:comments => :moderations},
+    :other_comments
+  ).to_sql
   => SELECT "articles".* FROM "articles"
      INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
      INNER JOIN "moderations" ON "moderations"."comment_id" = "comments"."id"
@@ -234,12 +224,20 @@ Additionally, to cover times when detection is impossible, or the first detected
 association isn't the one you wanted, you can call merge with a second parameter,
 specifying the association to be used during the merge.
 
-This merge functionality allows you to do:
+This merge functionality allows you to do this...
 
-  (Comment.where(:id < 7) & Article.where(:title =~ '%blah%')).autojoin.to_sql
+  (Comment.where(:id < 7) & Article.where(:title =~ '%blah%')).to_sql
   => SELECT "comments".* FROM "comments" INNER JOIN "articles"
      ON "articles"."id" = "comments"."article_id"
      WHERE ("comments"."id" < 7) AND ("articles"."title" LIKE '%blah%')"
+
+...or this...
+
+  Article.where(:id < 2).merge(Comment.where(:id < 7), :lame_comments).to_sql
+  => "SELECT "articles".* FROM "articles"
+     INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
+        AND "comments"."body" = 'first post!'
+     WHERE ("articles"."id" < 2) AND ("comments"."id" < 7)"
 
 == Enhanced order clauses
 
@@ -251,13 +249,11 @@ mapping," above) and also some convenience methods for ascending and descending 
   Article.order(
     :title.desc,
     :comments => [:created_at.asc, :updated_at]
-  ).autojoin.to_sql
+  ).joins(:comments).to_sql
   => SELECT "articles".* FROM "articles"
      INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
      ORDER BY  "articles"."title" DESC,
        "comments"."created_at" ASC, "comments"."updated_at"
-
-As you can see, autojoin will work with these associations as well.
 
 == Thanks
 A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch
