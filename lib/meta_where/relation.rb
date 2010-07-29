@@ -19,9 +19,10 @@ module MetaWhere
         r = r.clone
         r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
+        joins(association_name).merge_without_metawhere(r)
+      else
+        merge_without_metawhere(r)
       end
-
-      joins(association_name).merge_without_metawhere(r)
     end
 
     def reset_with_metawhere
