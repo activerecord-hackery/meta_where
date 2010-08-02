@@ -43,14 +43,12 @@ module MetaWhere
       end
     end
 
-    def build_where_with_metawhere(*args)
-      return if args.blank?
-
-      if args.first.is_a?(String)
-        @klass.send(:sanitize_sql, args)
+    def build_where_with_metawhere(opts, other = [])
+      if opts.is_a?(String)
+        @klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))
       else
         predicates = []
-        args.each do |arg|
+        [opts, *other].each do |arg|
           predicates += Array.wrap(
             case arg
             when Array
