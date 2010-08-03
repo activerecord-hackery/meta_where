@@ -13,9 +13,9 @@ module MetaWhere
     end
 
     def merge_with_metawhere(r, association_name = nil)
-      if (r && klass != r.klass) # Merging relations with different base.
-        default_association = reflect_on_all_associations.detect {|a| a.klass == r.klass}
-        association_name ||= default_association ? default_association.name : r.table_name.to_sym
+      if (r && (association_name || klass.name != r.klass.name)) # Merging relations with different base.
+        association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
+                             default_association.name : r.table_name.to_sym
         r = r.clone
         r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
