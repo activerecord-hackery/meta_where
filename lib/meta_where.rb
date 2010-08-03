@@ -1,5 +1,3 @@
-require 'arel'
-
 module MetaWhere
   METHOD_ALIASES = {
     'ne' => :not_eq,
@@ -14,8 +12,9 @@ module MetaWhere
     require 'core_ext/symbol_operators'
   end
 end
-
+require 'arel'
 require 'active_record'
+require 'active_support'
 require 'meta_where/column'
 require 'meta_where/condition'
 require 'meta_where/compound'
