@@ -8,6 +8,7 @@ module MetaWhere
       alias_method_chain :reset, :metawhere
       alias_method_chain :scope_for_create, :metawhere
       alias_method_chain :merge, :metawhere
+      alias_method_chain :construct_limited_ids_condition, :metawhere
 
       alias_method :&, :merge_with_metawhere
     end
@@ -108,9 +109,14 @@ module MetaWhere
     end unless defined?(:custom_join_sql)
 
     def predicate_wheres
+      remove_conflicting_equality_predicates(flatten_predicates(@where_values, metawhere_builder))
+    end
+
+    # Very occasionally, we need to get a builder for another relation, so it makes sense to factor
+    # this out into a public method despite only being two lines long.
+    def metawhere_builder
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-      builder = MetaWhere::Builder.new(join_dependency)
-      remove_conflicting_equality_predicates(flatten_predicates(@where_values, builder))
+      MetaWhere::Builder.new(join_dependency)
     end
 
     # Simulate the logic that occurs in ActiveRecord::Relation.to_a
@@ -129,12 +135,20 @@ module MetaWhere
       end
     end
 
+    def construct_limited_ids_condition_with_metawhere(relation)
+      builder = relation.metawhere_builder
+
+      orders = relation.order_values.map {|o| o.respond_to?(:to_attribute) ? o.to_attribute(builder).to_sql : o}.join(", ")
+      values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
+
+      ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}
+      ids_array.empty? ? raise(::ActiveRecord::ThrowResult) : primary_key.in(ids_array)
+    end
+
     def build_arel_with_metawhere
       arel = table
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-
-      builder = MetaWhere::Builder.new(join_dependency)
+      builder = metawhere_builder
 
       arel = build_intelligent_joins(arel, builder) if @joins_values.present?
 
