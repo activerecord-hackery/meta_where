@@ -31,7 +31,7 @@ module MetaWhere
     def scope_for_create_with_metawhere
       @scope_for_create ||= begin
         @create_with_value || predicate_wheres.inject({}) do |hash, where|
-          if where.is_a?(Arel::Predicates::Equality)
+          if is_equality_predicate?(where)
             hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
           end
 
@@ -185,6 +185,10 @@ module MetaWhere
 
     private
 
+    def is_equality_predicate?(predicate)
+      predicate.respond_to?(:operator) && predicate.operator == :==
+    end
+
     def build_intelligent_joins(arel, builder)
       joined_associations = []
 
@@ -223,7 +227,7 @@ module MetaWhere
 
     def remove_conflicting_equality_predicates(predicates)
       predicates.reverse.inject([]) { |ary, w|
-        unless w.is_a?(Arel::Predicates::Equality) && ary.any? {|p| p.is_a?(Arel::Predicates::Equality) && p.operand1.name == w.operand1.name}
+        unless is_equality_predicate?(w) && ary.any? {|p| is_equality_predicate?(p) && p.operand1.name == w.operand1.name}
           ary << w
         end
         ary
