@@ -1,30 +1,26 @@
 module MetaWhere
   module Relation
-    extend ActiveSupport::Concern
 
-    included do
-      alias_method_chain :build_arel, :metawhere
-      alias_method_chain :build_where, :metawhere
-      alias_method_chain :reset, :metawhere
-      alias_method_chain :scope_for_create, :metawhere
-      alias_method_chain :merge, :metawhere
-      alias_method_chain :construct_limited_ids_condition, :metawhere
-
-      alias_method :&, :merge_with_metawhere
+    def self.included(base)
+      base.class_eval do
+        alias_method_chain :reset, :metawhere
+        alias_method_chain :scope_for_create, :metawhere
+      end
     end
 
-    def merge_with_metawhere(r, association_name = nil)
+    def merge(r, association_name = nil)
       if (r && (association_name || klass.name != r.klass.name)) # Merging relations with different base.
         association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
                              default_association.name : r.table_name.to_sym
         r = r.clone
         r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
-        joins(association_name).merge_without_metawhere(r)
-      else
-        merge_without_metawhere(r)
+        self.joins_values += [association_name]
       end
+      super(r)
     end
+
+    alias_method :&, :merge
 
     def reset_with_metawhere
       @mw_unique_joins = @mw_association_joins = @mw_non_association_joins =
@@ -44,7 +40,7 @@ module MetaWhere
       end
     end
 
-    def build_where_with_metawhere(opts, other = [])
+    def build_where(opts, other = [])
       if opts.is_a?(String)
         @klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))
       else
@@ -135,17 +131,15 @@ module MetaWhere
       end
     end
 
-    def construct_limited_ids_condition_with_metawhere(relation)
+    def construct_limited_ids_condition(relation)
       builder = relation.metawhere_builder
 
-      orders = relation.order_values.map {|o| o.respond_to?(:to_attribute) ? o.to_attribute(builder).to_sql : o}.join(", ")
-      values = @klass.connection.distinct("#{@klass.connection.quote_table_name @klass.table_name}.#{@klass.primary_key}", orders)
+      relation.order_values.map! {|o| o.respond_to?(:to_attribute) ? o.to_attribute(builder).to_sql : o}
 
-      ids_array = relation.select(values).collect {|row| row[@klass.primary_key]}
-      ids_array.empty? ? raise(::ActiveRecord::ThrowResult) : primary_key.in(ids_array)
+      super
     end
 
-    def build_arel_with_metawhere
+    def build_arel
       arel = table
 
       builder = metawhere_builder

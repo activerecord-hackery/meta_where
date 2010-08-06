@@ -1,9 +1,10 @@
 module MetaWhere
   module JoinDependency
-    extend ActiveSupport::Concern
 
-    included do
-      alias_method_chain :build, :metawhere
+    def self.included(base)
+      base.class_eval do
+        alias_method_chain :build, :metawhere
+      end
     end
 
     class BaseMismatchError < StandardError; end
