@@ -44,5 +44,10 @@ module MetaWhere
       self
     end
 
+    # Let's degrade hracefully if someone expects us to be a symbol or something
+    def to_s
+      @column
+    end
+
   end
 end
