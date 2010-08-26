@@ -1,3 +1,8 @@
+Changes since 0.9.0 (2010-08-24):
+  * Check for use of MetaWhere in association macros. This won't work as expected
+    so it's better to raise a helpful error than create a potentially confusing
+    behavior.
+
 Changes since 0.5.2 (2010-07-09):
   * Removed autojoin. Inner joins have side-effects. Newbies are the ones who aremost
     likely to use autojoin, and they're also the ones least likely to understand why
@@ -10,6 +15,12 @@ Changes since 0.5.2 (2010-07-09):
   * Improved merge functonality. It shouldn't have ever required someone to do an
     autojoin to begin with. Now it just works. If you're merging two relations, you
     should expect to only get results that have a match on both sides.
+  * Attempt to gracefully degrade in the case where a MetaWhere::Column is expected
+    to be a normal symbol. Return the column name in #to_s.
+  * Fix order clauses when constructing a limited_ids_condition for postgresql.
+  * Fix problems with cache_classes == false on certain server configurations. Also
+    handle self-join with a merge of two identical classes and a second param.
+  * Drop ActiveSupport::Concern and only use alias_method_chain when needed.
 
 Changes since 0.5.1 (2010-06-22):
   * Added debug_sql method to Relations. Lets you see the actual SQL that
