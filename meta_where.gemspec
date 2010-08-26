@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_where}
-  s.version = "0.9.0"
+  s.version = "0.9.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-08-24}
+  s.date = %q{2010-08-25}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
      "lib/core_ext/symbol.rb",
      "lib/core_ext/symbol_operators.rb",
      "lib/meta_where.rb",
+     "lib/meta_where/association_reflection.rb",
      "lib/meta_where/builder.rb",
      "lib/meta_where/column.rb",
      "lib/meta_where/compound.rb",
@@ -53,6 +54,8 @@ Gem::Specification.new do |s|
      "test/fixtures/developer.rb",
      "test/fixtures/developers.yml",
      "test/fixtures/developers_projects.yml",
+     "test/fixtures/invalid_company.rb",
+     "test/fixtures/invalid_developer.rb",
      "test/fixtures/note.rb",
      "test/fixtures/notes.yml",
      "test/fixtures/people.yml",
@@ -61,6 +64,7 @@ Gem::Specification.new do |s|
      "test/fixtures/projects.yml",
      "test/fixtures/schema.rb",
      "test/helper.rb",
+     "test/test_base.rb",
      "test/test_relations.rb"
   ]
   s.homepage = %q{http://metautonomo.us/projects/metawhere/}
@@ -72,11 +76,14 @@ Gem::Specification.new do |s|
     "test/fixtures/company.rb",
      "test/fixtures/data_type.rb",
      "test/fixtures/developer.rb",
+     "test/fixtures/invalid_company.rb",
+     "test/fixtures/invalid_developer.rb",
      "test/fixtures/note.rb",
      "test/fixtures/person.rb",
      "test/fixtures/project.rb",
      "test/fixtures/schema.rb",
      "test/helper.rb",
+     "test/test_base.rb",
      "test/test_relations.rb"
   ]
 
