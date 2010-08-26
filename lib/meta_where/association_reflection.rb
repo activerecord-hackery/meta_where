@@ -16,7 +16,7 @@ module MetaWhere
     def ensure_no_metawhere_in_conditions(obj)
       case obj
       when Hash
-        if obj.keys.grep(MetaWhere::Column)
+        if obj.keys.grep(MetaWhere::Column).any?
           raise MetaWhereInAssociationError, <<END
 The :#{name} association  has a MetaWhere::Column in its :conditions. \
 If you actually needed to access conditions other than equality, then you most \

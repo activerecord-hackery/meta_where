@@ -39,15 +39,9 @@ module MetaWhere
       [column, method].hash
     end
 
-    # Play "nicely" with expand_hash_conditions_for_aggregates
+    # Play nicely with expand_hash_conditions_for_aggregates
     def to_sym
-      self
+      "#{column}.#{method}".to_sym
     end
-
-    # Let's degrade hracefully if someone expects us to be a symbol or something
-    def to_s
-      @column
-    end
-
   end
 end
