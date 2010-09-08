@@ -1,3 +1,6 @@
+Changes since 0.9.2 (2010-08-26):
+  * Updated gemspec to require Rails 3.0.0 final.
+
 Changes since 0.9.1 (2010-08-25):
   * Fix missing .any? on method chain in check for mw in association macros.
 
