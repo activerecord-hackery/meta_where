@@ -42,7 +42,7 @@ module MetaWhere
 
     def build_where(opts, other = [])
       if opts.is_a?(String)
-        @klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))
+        [@klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
       else
         predicates = []
         [opts, *other].each do |arg|

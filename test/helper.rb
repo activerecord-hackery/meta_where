@@ -4,6 +4,9 @@ require 'shoulda'
 require 'active_record'
 require 'active_record/fixtures'
 require 'active_support/time'
+require 'meta_where'
+
+MetaWhere.operator_overload!
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 
@@ -26,8 +29,6 @@ Fixtures.create_fixtures(FIXTURES_PATH, ActiveRecord::Base.connection.tables)
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
-require 'meta_where'
-MetaWhere.operator_overload!
 
 class Test::Unit::TestCase
 end
