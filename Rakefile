@@ -5,7 +5,7 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "meta_where"
-    gem.summary = %Q{Add a dash of Arel awesomeness to your condition hashes.}
+    gem.summary = %Q{ActiveRecord 3 query syntax on steroids.}
     gem.description = %Q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -22,7 +22,15 @@ begin
     gem.add_dependency "activerecord", "~> 3.0.0"
     gem.add_dependency "activesupport", "~> 3.0.0"
     gem.add_dependency "arel", "~> 1.0.1"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.post_install_message = <<END
+
+*** Thanks for installing MetaWhere! ***
+Be sure to check out http://metautonomo.us/projects/metawhere/ for a
+walkthrough of MetaWhere's features, and click the donate button if
+you're feeling especially appreciative. It'd help me justify this
+"open source" stuff to my lovely wife. :)
+
+END
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

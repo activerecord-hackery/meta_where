@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-09-08}
+  s.date = %q{2010-09-10}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -68,10 +68,18 @@ Gem::Specification.new do |s|
      "test/test_relations.rb"
   ]
   s.homepage = %q{http://metautonomo.us/projects/metawhere/}
+  s.post_install_message = %q{
+*** Thanks for installing MetaWhere! ***
+Be sure to check out http://metautonomo.us/projects/metawhere/ for a
+walkthrough of MetaWhere's features, and click the donate button if
+you're feeling especially appreciative. It'd help me justify this
+"open source" stuff to my lovely wife. :)
+
+}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.summary = %q{Add a dash of Arel awesomeness to your condition hashes.}
+  s.summary = %q{ActiveRecord 3 query syntax on steroids.}
   s.test_files = [
     "test/fixtures/company.rb",
      "test/fixtures/data_type.rb",
