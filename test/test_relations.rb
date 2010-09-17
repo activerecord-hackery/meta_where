@@ -201,8 +201,8 @@ class TestRelations < Test::Unit::TestCase
 
     context "with self-referencing joins on parent and children" do
       setup do
-        @r = @r.where(:children => {:children => {:parent => {:parent => {:name => 'Abraham'}}}})
-               .joins(:children => {:children => {:parent => :parent}})
+        @r = @r.where(:children => {:children => {:parent => {:parent => {:name => 'Abraham'}}}}).
+                joins(:children => {:children => {:parent => :parent}})
       end
 
       should "join the table multiple times with aliases" do

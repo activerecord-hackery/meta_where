@@ -6,6 +6,11 @@ module MetaWhere
         alias_method_chain :reset, :metawhere
         alias_method_chain :scope_for_create, :metawhere
       end
+
+      # We have to do this on the singleton to work with Ruby 1.8.7. Not sure why.
+      base.instance_eval do
+        alias_method :&, :merge
+      end
     end
 
     def merge(r, association_name = nil)
@@ -17,10 +22,9 @@ module MetaWhere
         r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
         self.joins_values += [association_name]
       end
+
       super(r)
     end
-
-    alias_method :&, :merge
 
     def reset_with_metawhere
       @mw_unique_joins = @mw_association_joins = @mw_non_association_joins =
