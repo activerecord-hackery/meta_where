@@ -14,7 +14,7 @@ module MetaWhere
     end
 
     def merge(r, association_name = nil)
-      if (r && (association_name || klass.name != r.klass.name)) # Merging relations with different base.
+      if (r && (association_name || base_class != r.klass.base_class)) # Merging relations with different base.
         association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
                              default_association.name : r.table_name.to_sym
         r = r.clone

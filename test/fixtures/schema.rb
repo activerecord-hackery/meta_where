@@ -5,24 +5,25 @@ ActiveRecord::Schema.define do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-  
+
   create_table "developers", :force => true do |t|
     t.integer  "company_id"
     t.string   "name"
     t.integer  "salary"
     t.boolean  "slacker"
   end
-  
+
   create_table "projects", :force => true do |t|
     t.string   "name"
+    t.string   "type"
     t.float    "estimated_hours"
   end
-  
+
   create_table "developers_projects", :id => false, :force => true do |t|
     t.integer  "developer_id"
     t.integer  "project_id"
   end
-  
+
   create_table "notes", :force => true do |t|
     t.string   "notable_type"
     t.integer  "notable_id"
@@ -43,7 +44,7 @@ ActiveRecord::Schema.define do
     t.binary   "bin"
     t.boolean  "bln"
   end
-  
+
   create_table "people", :force => true do |t|
     t.integer  "parent_id"
     t.string   "name"

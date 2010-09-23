@@ -145,6 +145,26 @@ class TestRelations < Test::Unit::TestCase
     end
   end
 
+  context "A relation from an STI class" do
+    setup do
+      @r = TimeAndMaterialsProject.scoped
+    end
+
+    should "return results from the designated class only" do
+      assert_equal 2, @r.size
+      assert @r.all? {|r| r.is_a?(TimeAndMaterialsProject)}
+    end
+
+    should "inherit the default scope of the parent class" do
+      assert_match /IS NOT NULL/, @r.to_sql
+    end
+
+    should "allow use of scopes in the parent class" do
+      assert_equal 1, @r.hours_lte_100.size
+      assert_equal 'MetaSearch Development', @r.hours_lte_100.first.name
+    end
+  end
+
   context "A merged relation" do
     setup do
       @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech')

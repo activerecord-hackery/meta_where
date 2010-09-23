@@ -1,5 +1,6 @@
 Changes since 0.9.3 (2010-09-08):
   * alias :& to :merge in singleton to work properly with Ruby 1.8.7.
+  * Fix merge to only use associations if not against the same base class. (STI)
 
 Changes since 0.9.2 (2010-08-26):
   * Updated gemspec to require Rails 3.0.0 final.

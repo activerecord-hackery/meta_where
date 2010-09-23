@@ -1,0 +1,2 @@
+class TimeAndMaterialsProject < Project
+end

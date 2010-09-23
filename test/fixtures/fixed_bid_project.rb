@@ -1,0 +1,2 @@
+class FixedBidProject < Project
+end
