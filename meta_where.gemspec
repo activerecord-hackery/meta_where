@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{meta_where}
-  s.version = "0.9.3"
+  s.version = "0.9.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
@@ -54,6 +54,7 @@ Gem::Specification.new do |s|
      "test/fixtures/developer.rb",
      "test/fixtures/developers.yml",
      "test/fixtures/developers_projects.yml",
+     "test/fixtures/fixed_bid_project.rb",
      "test/fixtures/invalid_company.rb",
      "test/fixtures/invalid_developer.rb",
      "test/fixtures/note.rb",
@@ -63,6 +64,7 @@ Gem::Specification.new do |s|
      "test/fixtures/project.rb",
      "test/fixtures/projects.yml",
      "test/fixtures/schema.rb",
+     "test/fixtures/time_and_materials_project.rb",
      "test/helper.rb",
      "test/test_base.rb",
      "test/test_relations.rb"
@@ -84,12 +86,14 @@ you're feeling especially appreciative. It'd help me justify this
     "test/fixtures/company.rb",
      "test/fixtures/data_type.rb",
      "test/fixtures/developer.rb",
+     "test/fixtures/fixed_bid_project.rb",
      "test/fixtures/invalid_company.rb",
      "test/fixtures/invalid_developer.rb",
      "test/fixtures/note.rb",
      "test/fixtures/person.rb",
      "test/fixtures/project.rb",
      "test/fixtures/schema.rb",
+     "test/fixtures/time_and_materials_project.rb",
      "test/helper.rb",
      "test/test_base.rb",
      "test/test_relations.rb"
