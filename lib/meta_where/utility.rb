@@ -21,7 +21,7 @@ module MetaWhere
     end
 
     def valid_comparison_method?(method)
-      Arel::Attribute::PREDICATES.map(&:to_s).include?(method.to_s)
+      MetaWhere::PREDICATES.map(&:to_s).include?(method.to_s)
     end
   end
 end

@@ -156,11 +156,11 @@ module MetaWhere
         next if where.blank?
 
         case where
-        when Arel::SqlLiteral
+        when Arel::Nodes::SqlLiteral
           arel = arel.where(where)
         else
           sql = where.is_a?(String) ? where : where.to_sql
-          arel = arel.where(Arel::SqlLiteral.new("(#{sql})"))
+          arel = arel.where(Arel::Nodes::SqlLiteral.new("(#{sql})"))
         end
       end
 
@@ -225,7 +225,7 @@ module MetaWhere
       order_attributes = orders.map {|o|
         o.respond_to?(:to_attribute) ? o.to_attribute(builder, builder.join_dependency.join_base) : o
       }.flatten.uniq.select {|o| o.present?}
-      order_attributes.map! {|a| Arel::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
+      order_attributes.map! {|a| Arel::Nodes::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
       order_attributes.present? ? arel.order(*order_attributes) : arel
     end
 
@@ -241,8 +241,8 @@ module MetaWhere
     def flatten_predicates(predicates, builder)
       predicates.map {|p|
         predicate = p.respond_to?(:to_predicate) ? p.to_predicate(builder) : p
-        if predicate.is_a?(Arel::Predicates::All)
-          flatten_predicates(predicate.predicates, builder)
+        if predicate.is_a?(Arel::Nodes::Grouping) && predicate.expr.is_a?(Arel::Nodes::And)
+          flatten_predicates([predicate.expr.left, predicate.expr.right], builder)
         else
           predicate
         end
