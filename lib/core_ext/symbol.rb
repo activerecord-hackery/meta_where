@@ -1,5 +1,5 @@
 class Symbol
-  Arel::Attribute::PREDICATES.each do |predication|
+  MetaWhere::PREDICATES.each do |predication|
     define_method(predication) do
       MetaWhere::Column.new(self, predication)
     end
