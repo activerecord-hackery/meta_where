@@ -55,7 +55,7 @@ module MetaWhere
             raise ::ActiveRecord::StatementInvalid, "No comparison method named `#{method}` exists for column `#{column}`"
           end
 
-          attribute.send(method, *args_for_predicate(method.to_s, value))
+          attribute.send(method, args_for_predicate(value))
         end
       end
 

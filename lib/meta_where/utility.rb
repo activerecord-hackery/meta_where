@@ -2,12 +2,12 @@ module MetaWhere
   module Utility
     private
 
-    def args_for_predicate(method, value)
-      value = [Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation].include?(value.class) ? value.to_a : value
-      if method =~ /_(any|all)$/ && value.is_a?(Array)
-        value
+    def args_for_predicate(value)
+      case value
+      when ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
+        value.to_a
       else
-        [value]
+        value
       end
     end
 
