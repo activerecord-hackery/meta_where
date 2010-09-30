@@ -1,3 +1,6 @@
+Changes since 0.9.5 (2010-09-27):
+  * Don't skip adding condition if an empty array is supplied
+
 Changes since 0.9.4 (2010-09-23):
   * Fix those fun problems with cache_classes.
 
