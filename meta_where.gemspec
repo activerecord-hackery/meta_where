@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ernie Miller"]
-  s.date = %q{2010-09-30}
+  s.date = %q{2010-10-04}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -105,19 +105,19 @@ you're feeling especially appreciative. It'd help me justify this
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<shoulda>, [">= 0"])
-      s.add_runtime_dependency(%q<activerecord>, ["~> 3.0.0"])
-      s.add_runtime_dependency(%q<activesupport>, ["~> 3.0.0"])
+      s.add_runtime_dependency(%q<activerecord>, ["~> 3.0"])
+      s.add_runtime_dependency(%q<activesupport>, ["~> 3.0"])
       s.add_runtime_dependency(%q<arel>, ["~> 2.0.0"])
     else
       s.add_dependency(%q<shoulda>, [">= 0"])
-      s.add_dependency(%q<activerecord>, ["~> 3.0.0"])
-      s.add_dependency(%q<activesupport>, ["~> 3.0.0"])
+      s.add_dependency(%q<activerecord>, ["~> 3.0"])
+      s.add_dependency(%q<activesupport>, ["~> 3.0"])
       s.add_dependency(%q<arel>, ["~> 2.0.0"])
     end
   else
     s.add_dependency(%q<shoulda>, [">= 0"])
-    s.add_dependency(%q<activerecord>, ["~> 3.0.0"])
-    s.add_dependency(%q<activesupport>, ["~> 3.0.0"])
+    s.add_dependency(%q<activerecord>, ["~> 3.0"])
+    s.add_dependency(%q<activesupport>, ["~> 3.0"])
     s.add_dependency(%q<arel>, ["~> 2.0.0"])
   end
 end
