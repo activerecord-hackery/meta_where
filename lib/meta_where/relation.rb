@@ -36,7 +36,7 @@ module MetaWhere
       @scope_for_create ||= begin
         @create_with_value || predicate_wheres.inject({}) do |hash, where|
           if is_equality_predicate?(where)
-            hash[where.operand1.name] = where.operand2.respond_to?(:value) ? where.operand2.value : where.operand2
+            hash[where.left.name] = where.right.respond_to?(:value) ? where.right.value : where.right
           end
 
           hash
@@ -164,25 +164,19 @@ module MetaWhere
         end
       end
 
-      arel = arel.having(*@having_values.uniq.select{|h| h.present?}) if @having_values.present?
+      arel = arel.having(*@having_values.uniq.reject{|h| h.blank?}) unless @having_values.empty?
 
-      arel = arel.take(@limit_value) if @limit_value.present?
-      arel = arel.skip(@offset_value) if @offset_value.present?
+      arel = arel.take(@limit_value) if @limit_value
+      arel = arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.select{|g| g.present?}) if @group_values.present?
+      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel = build_order(arel, builder, @order_values) if @order_values.present?
+      arel = build_order(arel, builder, @order_values) unless @order_values.empty?
 
       arel = build_select(arel, @select_values.uniq)
 
-      arel = arel.from(@from_value) if @from_value.present?
-
-      case @lock_value
-      when TrueClass
-        arel = arel.lock
-      when String
-        arel = arel.lock(@lock_value)
-      end if @lock_value.present?
+      arel = arel.from(@from_value) if @from_value
+      arel = arel.lock(@lock_value) if @lock_value
 
       arel
     end
@@ -190,7 +184,7 @@ module MetaWhere
     private
 
     def is_equality_predicate?(predicate)
-      predicate.respond_to?(:operator) && predicate.operator == :==
+      predicate.class == Arel::Nodes::Equality
     end
 
     def build_intelligent_joins(arel, builder)
@@ -224,8 +218,7 @@ module MetaWhere
     def build_order(arel, builder, orders)
       order_attributes = orders.map {|o|
         o.respond_to?(:to_attribute) ? o.to_attribute(builder, builder.join_dependency.join_base) : o
-      }.flatten.uniq.select {|o| o.present?}
-      order_attributes.map! {|a| Arel::Nodes::SqlLiteral.new(a.is_a?(String) ? a : a.to_sql)}
+      }.flatten.uniq.reject {|o| o.blank?}
       order_attributes.present? ? arel.order(*order_attributes) : arel
     end
 
