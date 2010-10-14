@@ -92,6 +92,21 @@ class TestRelations < Test::Unit::TestCase
                    @r.joins(:data_types).where(:data_types => [:dec >= 2, :dec <= 5]).all
     end
 
+    should "allow nested conditions hashes to have MetaWhere::Condition values" do
+      assert_equal @r.joins(:data_types).where(:data_types => {:dec.gt => 2}).all,
+                   @r.joins(:data_types).where(:data_types => :dec > 2).all
+    end
+
+    should "allow nested conditions hashes to have MetaWhere::And values" do
+      assert_equal @r.joins(:data_types).where(:data_types => {:dec => 2..5}).all,
+                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) & (:dec <= 5))).all
+    end
+
+    should "allow nested conditions hashes to have MetaWhere::Or values" do
+      assert_equal @r.joins(:data_types).where(:data_types => [:dec.gteq % 2 | :bln.eq % true]).all,
+                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) | :bln[true])).all
+    end
+
     should "allow combinations of options that no sane developer would ever try to use" do
       assert_equal @r.find_all_by_name('Initech'),
                    @r.joins(:data_types, :developers => [:projects, :notes]).
