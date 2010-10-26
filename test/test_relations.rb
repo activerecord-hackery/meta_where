@@ -29,6 +29,15 @@ class TestRelations < Test::Unit::TestCase
       assert_equal results.first, Company.find_by_name('Initech')
     end
 
+    should "allow selection of join type in association joins" do
+      assert_match /INNER JOIN/, @r.joins(:developers.inner).to_sql
+      assert_match /LEFT OUTER JOIN/, @r.joins(:developers.outer).to_sql
+    end
+
+    should "only join once even if two join types are used" do
+      assert_equal 1, @r.joins(:developers.inner, :developers.outer).to_sql.scan("JOIN").size
+    end
+
     should "create new records with values from equality predicates" do
       assert_equal "New Company",
                    @r.where(:name => 'New Company').new.name

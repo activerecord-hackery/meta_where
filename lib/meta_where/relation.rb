@@ -255,7 +255,7 @@ module MetaWhere
 
     def association_joins
       @mw_association_joins ||= unique_joins.select{|j|
-        [Hash, Array, Symbol].include?(j.class) && !array_of_strings?(j)
+        [Hash, Array, Symbol, MetaWhere::JoinType].include?(j.class) && !array_of_strings?(j)
       }
     end
 

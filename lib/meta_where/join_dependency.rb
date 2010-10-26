@@ -14,6 +14,14 @@ module MetaWhere
     def build_with_metawhere(associations, parent = nil, join_class = Arel::InnerJoin)
       parent ||= @joins.last
       case associations
+      when MetaWhere::JoinType
+        reflection = parent.reflections[associations.name] or
+        raise AssociationNotFoundError, "Association named '#{ associations.name }' was not found; perhaps you misspelled it?"
+        unless association = find_join_association(reflection, parent)
+          @reflections << reflection
+          association = (@joins << build_join_association(reflection, parent).with_join_class(associations.join_type)).last
+        end
+        association
       when Symbol, String
         reflection = parent.reflections[associations.to_s.intern] or
         raise AssociationNotFoundError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
