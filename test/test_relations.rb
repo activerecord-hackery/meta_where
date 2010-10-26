@@ -189,7 +189,7 @@ class TestRelations < Test::Unit::TestCase
     end
   end
 
-  context "A merged relation" do
+  context "A merged relation with a different base class" do
     setup do
       @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech')
     end
@@ -203,7 +203,18 @@ class TestRelations < Test::Unit::TestCase
     end
   end
 
-  context "A merged relation with an alternate association" do
+  context "A merged relation with a different base class and a MetaWhere::JoinType in joins" do
+    setup do
+      @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech').joins(:data_types.outer)
+    end
+
+    should "merge the JoinType under the association for the merged relation" do
+      assert_match /LEFT OUTER JOIN #{DataType.quoted_table_name} ON #{DataType.quoted_table_name}."company_id" = #{Company.quoted_table_name}."id"/,
+                   @r.to_sql
+    end
+  end
+
+  context "A merged relation with with a different base class and an alternate association" do
     setup do
       @r = Company.scoped.merge(Developer.where(:salary.gt => 70000), :slackers)
     end
