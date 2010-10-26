@@ -19,7 +19,7 @@ module MetaWhere
                              default_association.name : r.table_name.to_sym
         r = r.clone
         r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
-        r.joins_values.map! {|j| [Symbol, Hash].include?(j.class) ? {association_name => j} : j}
+        r.joins_values.map! {|j| [Symbol, Hash, MetaWhere::JoinType].include?(j.class) ? {association_name => j} : j}
         self.joins_values += [association_name]
       end
 
