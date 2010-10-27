@@ -28,7 +28,7 @@ module MetaWhere
     def ==(other_condition)
       other_condition.is_a?(Condition) &&
       other_condition.column == column &&
-      other_condition.value = value    &&
+      other_condition.value == value    &&
       other_condition.method == method
     end
 
