@@ -38,6 +38,22 @@ class TestRelations < Test::Unit::TestCase
       assert_equal 1, @r.joins(:developers.inner, :developers.outer).to_sql.scan("JOIN").size
     end
 
+    should "allow SQL functions via Symbol#mw_func" do
+      assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => {:count.mw_func(:id).gt => 2}).all
+    end
+
+    should "allow SQL functions via Symbol#[]" do
+      assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => {:count[:id].gt => 2}).all
+    end
+
+    should "allow SQL functions in select clause" do
+      assert_equal [3,2,3], @r.joins(:developers).group('companies.id').select(:count['developers.id'].as(:developers_count)).map {|c| c.developers_count}
+    end
+
+    should "allow operators on MetaWhere::Function objects" do
+      assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => [:count[:id] > 2]).all
+    end
+
     should "create new records with values from equality predicates" do
       assert_equal "New Company",
                    @r.where(:name => 'New Company').new.name
@@ -113,7 +129,7 @@ class TestRelations < Test::Unit::TestCase
 
     should "allow nested conditions hashes to have MetaWhere::Or values" do
       assert_equal @r.joins(:data_types).where(:data_types => [:dec.gteq % 2 | :bln.eq % true]).all,
-                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) | :bln[true])).all
+                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) | (:bln / true))).all
     end
 
     should "allow combinations of options that no sane developer would ever try to use" do

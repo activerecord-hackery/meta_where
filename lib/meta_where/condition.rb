@@ -7,7 +7,7 @@ module MetaWhere
     attr_reader :column, :value, :method
 
     def initialize(column, value, method)
-      @column = column.to_s
+      @column = column
       @value = value
       @method = (MetaWhere::METHOD_ALIASES[method.to_s] || method).to_s
     end
@@ -15,7 +15,7 @@ module MetaWhere
     def to_predicate(builder, parent = nil)
       table = builder.build_table(parent)
 
-      unless attribute = table[column]
+      unless attribute = attribute_from_column_and_table(column, table)
         raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
       end
 

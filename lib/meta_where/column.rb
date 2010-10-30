@@ -3,8 +3,8 @@ module MetaWhere
     attr_reader :column, :method
 
     def initialize(column, method)
-      @column = column.to_s
-      @method = method.to_s
+      @column = column
+      @method = method
     end
 
     def %(value)
@@ -20,7 +20,7 @@ module MetaWhere
     alias_method :eql?, :==
 
     def to_attribute(builder, parent = nil)
-      column_name = column
+      column_name = column.to_s
       if column_name.include?('.')
         table_name, column_name = column_name.split('.', 2)
         table = Arel::Table.new(table_name, :engine => parent.arel_engine)

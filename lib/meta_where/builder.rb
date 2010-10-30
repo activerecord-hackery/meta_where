@@ -38,16 +38,15 @@ module MetaWhere
             method = column.method
             column = column.column
           else
-            column = column.to_s
             method = method_from_value(value)
           end
 
-          if column.include?('.')
-            table_name, column = column.split('.', 2)
+          if [String, Symbol].include?(column.class) && column.to_s.include?('.')
+            table_name, column = column.to_s.split('.', 2)
             table = Arel::Table.new(table_name, :engine => parent.arel_engine)
           end
 
-          unless attribute = table[column]
+          unless attribute = attribute_from_column_and_table(column, table)
             raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
           end
 

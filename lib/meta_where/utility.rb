@@ -2,6 +2,18 @@ module MetaWhere
   module Utility
     private
 
+    def attribute_from_column_and_table(column, table)
+      case column
+      when String, Symbol
+        table[column]
+      when MetaWhere::Function
+        column.table = table
+        column.to_sqlliteral
+      else
+        nil
+      end
+    end
+
     def args_for_predicate(value)
       case value
       when ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation

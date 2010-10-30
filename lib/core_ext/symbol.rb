@@ -21,6 +21,10 @@ class Symbol
     attribute
   end
 
+  def mw_func(*args)
+    MetaWhere::Function.new(self, *args)
+  end
+
   def inner
     MetaWhere::JoinType.new(self, Arel::InnerJoin)
   end

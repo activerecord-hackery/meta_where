@@ -1,5 +1,9 @@
 class Symbol
-  def [](value)
+  def [](*values)
+    MetaWhere::Function.new(self, *values)
+  end
+
+  def /(value)
     MetaWhere::Condition.new(self, value, :eq)
   end
 
