@@ -198,10 +198,10 @@ module MetaWhere
 
       builder.join_dependency.join_associations.each do |association|
         if (association_relation = association.relation).is_a?(Array)
-          to_join << [association_relation.first, association.join_class, association.association_join.first]
-          to_join << [association_relation.last, association.join_class, association.association_join.last]
+          to_join << [association_relation.first, association.join_type, association.association_join.first]
+          to_join << [association_relation.last, association.join_type, association.association_join.last]
         else
-          to_join << [association_relation, association.join_class, association.association_join]
+          to_join << [association_relation, association.join_type, association.association_join]
         end
       end
 

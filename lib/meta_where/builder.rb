@@ -25,13 +25,13 @@ module MetaWhere
       table = build_table(parent)
       predicates = attributes.map do |column, value|
         if value.is_a?(Hash)
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           build_predicates_from_hash(value, association || column)
         elsif [MetaWhere::Condition, MetaWhere::And, MetaWhere::Or].include?(value.class)
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           value.to_predicate(self, association || column)
         elsif value.is_a?(Array) && !value.empty? && value.all? {|v| v.respond_to?(:to_predicate)}
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           value.map {|val| val.to_predicate(self, association || column)}
         else
           if column.is_a?(MetaWhere::Column)
@@ -65,18 +65,24 @@ module MetaWhere
       table = build_table(parent)
       built_attributes = attributes.map do |column, value|
         if value.is_a?(Hash)
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           build_attributes_from_hash(value, association || column)
         elsif value.is_a?(Array) && value.all? {|v| v.respond_to?(:to_attribute)}
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           value.map {|val| val.to_attribute(self, association || column)}
         else
-          association = parent.is_a?(Symbol) ? nil : @join_dependency.find_join_association(column, parent)
+          association = association_from_parent_and_column(parent, column)
           value.respond_to?(:to_attribute) ? value.to_attribute(self, association || column) : value
         end
       end
 
       built_attributes.flatten
+    end
+
+    private
+
+    def association_from_parent_and_column(parent, column)
+      parent.is_a?(Symbol) ? nil : @join_dependency.send(:find_join_association, column, parent)
     end
 
   end
