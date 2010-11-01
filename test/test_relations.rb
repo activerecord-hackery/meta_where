@@ -84,6 +84,12 @@ class TestRelations < Test::Unit::TestCase
       assert_equal results.first, Company.find_by_name('Initech')
     end
 
+    should "behave as expected with empty arrays" do
+      none = @r.where("3 = 1").all
+      assert_equal none, @r.where(:name => []).all
+      assert_equal none, @r.where(:name.in => []).all
+    end
+
     should "allow multiple condition params in a single where" do
       results = @r.where(['name like ?', '%tech'], :created_at => 100.years.ago..Time.now)
       assert_equal 1, results.size
