@@ -139,7 +139,7 @@ class TestRelations < Test::Unit::TestCase
 
     should "allow nested conditions hashes to have MetaWhere::Or values" do
       assert_equal @r.joins(:data_types).where(:data_types => [:dec.gteq % 2 | :bln.eq % true]).all,
-                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) | (:bln / true))).all
+                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) | (:bln >> true))).all
     end
 
     should "allow combinations of options that no sane developer would ever try to use" do

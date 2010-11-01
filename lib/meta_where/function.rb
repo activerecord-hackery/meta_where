@@ -40,7 +40,7 @@ module MetaWhere
       end
     end
 
-    def /(value)
+    def >>(value)
       MetaWhere::Condition.new(self, value, :eq)
     end
 

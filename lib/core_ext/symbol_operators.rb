@@ -3,7 +3,7 @@ class Symbol
     MetaWhere::Function.new(self, *values)
   end
 
-  def /(value)
+  def >>(value)
     MetaWhere::Condition.new(self, value, :eq)
   end
 
