@@ -54,6 +54,10 @@ class TestRelations < Test::Unit::TestCase
       assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => [:count[:id] > 2]).all
     end
 
+    should "join multiple parameters to an SQL function with commas" do
+      assert_match /concat\("companies"."id","companies"."name"\) LIKE '%blah%'/, @r.where(:concat[:id,:name].matches => '%blah%').to_sql
+    end
+
     should "create new records with values from equality predicates" do
       assert_equal "New Company",
                    @r.where(:name => 'New Company').new.name
