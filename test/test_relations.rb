@@ -38,8 +38,8 @@ class TestRelations < Test::Unit::TestCase
       assert_equal 1, @r.joins(:developers.inner, :developers.outer).to_sql.scan("JOIN").size
     end
 
-    should "allow SQL functions via Symbol#mw_func" do
-      assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => {:count.mw_func(:id).gt => 2}).all
+    should "allow SQL functions via Symbol#func" do
+      assert_equal @r.where(:name.in => ['Initech', 'Mission Data']), @r.joins(:developers).group('companies.id').having(:developers => {:count.func(:id).gt => 2}).all
     end
 
     should "allow SQL functions via Symbol#[]" do

@@ -25,6 +25,8 @@ class Symbol
     MetaWhere::Function.new(self, *args)
   end
 
+  alias_method :func, :mw_func unless method_defined?(:func)
+
   def inner
     MetaWhere::JoinType.new(self, Arel::InnerJoin)
   end
