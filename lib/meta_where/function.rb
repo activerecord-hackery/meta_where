@@ -101,7 +101,7 @@ module MetaWhere
         when Arel::Nodes::SqlLiteral
           arg
         when String
-          self.table ? self.table.engine.quote_value(arg) : "\"#{arg}\""
+          ActiveRecord::Base.quote_value arg
         else
           arg
         end
