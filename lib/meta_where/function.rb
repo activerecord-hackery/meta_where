@@ -98,6 +98,8 @@ module MetaWhere
         when MetaWhere::Function
           arg.table = self.table
           arg.to_sqlliteral
+        when Arel::Nodes::SqlLiteral
+          arg
         when String
           self.table ? self.table.engine.quote_value(arg) : "\"#{arg}\""
         else
