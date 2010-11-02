@@ -181,6 +181,14 @@ module MetaWhere
       arel
     end
 
+    def select(value = Proc.new)
+      if MetaWhere::Function === value
+        value.table = self.arel_table
+      end
+
+      super
+    end
+
     private
 
     def is_equality_predicate?(predicate)

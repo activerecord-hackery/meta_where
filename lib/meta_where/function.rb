@@ -92,18 +92,11 @@ module MetaWhere
 
     def contextualize_args
       args.map do |arg|
-        case arg
-        when Symbol
-          self.table && self.table[arg] ? Arel::Visitors.for(table.engine).accept(table[arg]) : arg
-        when MetaWhere::Function
-          arg.table = self.table
-          arg.to_sqlliteral
-        when Arel::Nodes::SqlLiteral
-          arg
-        when String
-          ActiveRecord::Base.quote_value arg
+        if arg.is_a? Symbol
+          self.table && self.table[arg] ? Arel::Visitors.for(ActiveRecord::Base).accept(table[arg]) : arg
         else
-          arg
+          arg.table = self.table if arg.is_a? MetaWhere::Function
+          Arel::Visitors.for(ActiveRecord::Base).accept(arg)
         end
       end
     end

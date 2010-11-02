@@ -47,7 +47,7 @@ class TestRelations < Test::Unit::TestCase
     end
 
     should "allow SQL functions in select clause" do
-      assert_equal [3,2,3], @r.joins(:developers).group('companies.id').select(:count['developers.id'].as(:developers_count)).map {|c| c.developers_count}
+      assert_equal [3,2,3], @r.joins(:developers).group('companies.id').select(:count[Developer.arel_table[:id]].as(:developers_count)).map {|c| c.developers_count}
     end
 
     should "allow operators on MetaWhere::Function objects" do
