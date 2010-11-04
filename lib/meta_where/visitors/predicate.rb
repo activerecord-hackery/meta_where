@@ -1,9 +1,53 @@
+require 'meta_where/visitors/visitor'
+
 module MetaWhere
   module Visitors
-    module Predicate
+    class Predicate < Visitor
 
-      def predicate_visit_Hash(o, parent)
-        predicates = self.build_predicates_from_hash(o, parent || self.join_dependency.join_base)
+      def self.visitables
+        [Hash, MetaWhere::Or, MetaWhere::And, MetaWhere::Condition, MetaWhere::Function]
+      end
+
+      def visit_Hash(o, parent)
+        parent ||= join_dependency.join_base
+        table = build_table(parent)
+        predicates = o.map do |column, value|
+          if value.is_a?(Hash)
+            association = association_from_parent_and_column(parent, column)
+            accept(value, association || column)
+          elsif [MetaWhere::Condition, MetaWhere::And, MetaWhere::Or].include?(value.class)
+            association = association_from_parent_and_column(parent, column)
+            accept(value, association || column)
+          elsif value.is_a?(Array) && !value.empty? && value.all? {|v| can_accept?(v)}
+            association = association_from_parent_and_column(parent, column)
+            value.map {|val| accept(val, association || column)}
+          else
+            if column.is_a?(MetaWhere::Column)
+              method = column.method
+              column = column.column
+            else
+              method = method_from_value(value)
+            end
+
+            if [String, Symbol].include?(column.class) && column.to_s.include?('.')
+              table_name, column = column.to_s.split('.', 2)
+              table = Arel::Table.new(table_name, :engine => parent.arel_engine)
+            end
+
+            unless attribute = attribute_from_column_and_table(column, table)
+              raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
+            end
+
+            unless valid_comparison_method?(method)
+              raise ::ActiveRecord::StatementInvalid, "No comparison method named `#{method}` exists for column `#{column}`"
+            end
+
+            attribute.send(method, args_for_predicate(value))
+          end
+        end
+
+        predicates.flatten!
+
         if predicates.size > 1
           first = predicates.shift
           Arel::Nodes::Grouping.new(predicates.inject(first) {|memo, expr| Arel::Nodes::And.new(memo, expr)})
@@ -12,15 +56,15 @@ module MetaWhere
         end
       end
 
-      def predicate_visit_MetaWhere_Or(o, parent)
-        predicate_accept(o.condition1, parent).or(predicate_accept(o.condition2, parent))
+      def visit_MetaWhere_Or(o, parent)
+        accept(o.condition1, parent).or(accept(o.condition2, parent))
       end
 
-      def predicate_visit_MetaWhere_And(o, parent)
-        predicate_accept(o.condition1, parent).and(predicate_accept(o.condition2, parent))
+      def visit_MetaWhere_And(o, parent)
+        accept(o.condition1, parent).and(accept(o.condition2, parent))
       end
 
-      def predicate_visit_MetaWhere_Condition(o, parent)
+      def visit_MetaWhere_Condition(o, parent)
         table = self.build_table(parent)
 
         unless attribute = attribute_from_column_and_table(o.column, table)
@@ -33,28 +77,10 @@ module MetaWhere
         attribute.send(o.method, args_for_predicate(o.value))
       end
 
-      def predicate_visit_MetaWhere_Function(o, parent)
+      def visit_MetaWhere_Function(o, parent)
         self.table = self.build_table(parent)
 
         o.to_sqlliteral
-      end
-
-      def predicate_accept(object, parent = nil)
-        predicate_visit(object, parent)
-      end
-
-      def can_predicate?(object)
-        respond_to? PRED_DISPATCH[object.class]
-      end
-
-      private
-
-      PRED_DISPATCH = Hash.new do |hash, klass|
-        hash[klass] = "predicate_visit_#{klass.name.gsub('::', '_')}"
-      end
-
-      def predicate_visit(object, parent)
-        send(PRED_DISPATCH[object.class], object, parent)
       end
 
     end

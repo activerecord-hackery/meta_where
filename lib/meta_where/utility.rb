@@ -2,6 +2,10 @@ module MetaWhere
   module Utility
     private
 
+    def association_from_parent_and_column(parent, column)
+      parent.is_a?(Symbol) ? nil : @join_dependency.send(:find_join_association, column, parent)
+    end
+
     def attribute_from_column_and_table(column, table)
       case column
       when String, Symbol

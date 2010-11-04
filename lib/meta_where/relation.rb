@@ -18,7 +18,7 @@ module MetaWhere
         association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
                              default_association.name : r.table_name.to_sym
         r = r.clone
-        r.where_values.map! {|w| [Hash, MetaWhere::Or, MetaWhere::And, MetaWhere::Condition, MetaWhere::Function].include?(w.class) ? {association_name => w} : w}
+        r.where_values.map! {|w| MetaWhere::Visitors::Predicate.visitables.include?(w.class) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash, MetaWhere::JoinType].include?(j.class) ? {association_name => j} : j}
         self.joins_values += [association_name]
       end
@@ -109,14 +109,19 @@ module MetaWhere
     end unless defined?(:custom_join_sql)
 
     def predicate_wheres
-      remove_conflicting_equality_predicates(flatten_predicates(@where_values, metawhere_builder))
+      remove_conflicting_equality_predicates(flatten_predicates(@where_values, predicate_visitor))
     end
 
-    # Very occasionally, we need to get a builder for another relation, so it makes sense to factor
-    # this out into a public method despite only being two lines long.
-    def metawhere_builder
+    # Very occasionally, we need to get a visitor for another relation, so it makes sense to factor
+    # these out into a public method despite only being two lines long.
+    def predicate_visitor
       join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-      MetaWhere::Builder.new(join_dependency)
+      MetaWhere::Visitors::Predicate.new(join_dependency)
+    end
+
+    def attribute_visitor
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+      MetaWhere::Visitors::Attribute.new(join_dependency)
     end
 
     # Simulate the logic that occurs in ActiveRecord::Relation.to_a
@@ -136,9 +141,9 @@ module MetaWhere
     end
 
     def construct_limited_ids_condition(relation)
-      builder = relation.metawhere_builder
+      visitor = relation.attribute_visitor
 
-      relation.order_values.map! {|o| builder.can_attribute?(o) ? builder.attribute_accept(o).to_sql : o}
+      relation.order_values.map! {|o| visitor.can_accept?(o) ? visitor.accept(o).to_sql : o}
 
       super
     end
@@ -146,11 +151,11 @@ module MetaWhere
     def build_arel
       arel = table
 
-      builder = metawhere_builder
+      visitor = predicate_visitor
 
-      arel = build_intelligent_joins(arel, builder) if @joins_values.present?
+      arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
 
-      predicate_wheres = remove_conflicting_equality_predicates(flatten_predicates(@where_values, builder))
+      predicate_wheres = remove_conflicting_equality_predicates(flatten_predicates(@where_values, visitor))
 
       predicate_wheres.each do |where|
         next if where.blank?
@@ -164,14 +169,14 @@ module MetaWhere
         end
       end
 
-      arel = arel.having(*flatten_predicates(@having_values, builder).reject {|h| h.blank?}) unless @having_values.empty?
+      arel = arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
 
       arel = arel.take(@limit_value) if @limit_value
       arel = arel.skip(@offset_value) if @offset_value
 
       arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel = build_order(arel, builder, @order_values) unless @order_values.empty?
+      arel = build_order(arel, attribute_visitor, @order_values) unless @order_values.empty?
 
       arel = build_select(arel, @select_values.uniq)
 
@@ -195,16 +200,16 @@ module MetaWhere
       predicate.class == Arel::Nodes::Equality
     end
 
-    def build_intelligent_joins(arel, builder)
+    def build_intelligent_joins(arel, visitor)
       joined_associations = []
 
-      builder.join_dependency.graft(*stashed_association_joins)
+      visitor.join_dependency.graft(*stashed_association_joins)
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
       to_join = []
 
-      builder.join_dependency.join_associations.each do |association|
+      visitor.join_dependency.join_associations.each do |association|
         if (association_relation = association.relation).is_a?(Array)
           to_join << [association_relation.first, association.join_type, association.association_join.first]
           to_join << [association_relation.last, association.join_type, association.association_join.last]
@@ -223,9 +228,9 @@ module MetaWhere
       arel = arel.join(custom_joins)
     end
 
-    def build_order(arel, builder, orders)
+    def build_order(arel, visitor, orders)
       order_attributes = orders.map {|o|
-        builder.can_attribute?(o) ? builder.attribute_accept(o, builder.join_dependency.join_base) : o
+        visitor.can_accept?(o) ? visitor.accept(o, visitor.join_dependency.join_base) : o
       }.flatten.uniq.reject {|o| o.blank?}
       order_attributes.present? ? arel.order(*order_attributes) : arel
     end
@@ -239,11 +244,11 @@ module MetaWhere
       }.reverse
     end
 
-    def flatten_predicates(predicates, builder)
+    def flatten_predicates(predicates, visitor)
       predicates.map {|p|
-        predicate = builder.can_predicate?(p) ? builder.predicate_accept(p) : p
+        predicate = visitor.can_accept?(p) ? visitor.accept(p) : p
         if predicate.is_a?(Arel::Nodes::Grouping) && predicate.expr.is_a?(Arel::Nodes::And)
-          flatten_predicates([predicate.expr.left, predicate.expr.right], builder)
+          flatten_predicates([predicate.expr.left, predicate.expr.right], visitor)
         else
           predicate
         end
