@@ -18,7 +18,7 @@ module MetaWhere
       when Hash
         if obj.keys.grep(MetaWhere::Column).any?
           raise MetaWhereInAssociationError, <<END
-The :#{name} association  has a MetaWhere::Column in its :conditions. \
+The :#{name} association has a MetaWhere::Column in its :conditions. \
 If you actually needed to access conditions other than equality, then you most \
 likely meant to set up a scope or method, instead. Associations only work with \
 standard equality conditions, since they can be used to create records as well.
