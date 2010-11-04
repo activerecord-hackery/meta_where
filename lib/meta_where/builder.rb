@@ -1,8 +1,13 @@
 require 'meta_where/utility'
+require 'meta_where/visitors/predicate'
+require 'meta_where/visitors/attribute'
 
 module MetaWhere
   class Builder
     include MetaWhere::Utility
+    include MetaWhere::Visitors::Predicate
+    include MetaWhere::Visitors::Attribute
+
     attr_reader :join_dependency
 
     def initialize(join_dependency)
@@ -29,10 +34,10 @@ module MetaWhere
           build_predicates_from_hash(value, association || column)
         elsif [MetaWhere::Condition, MetaWhere::And, MetaWhere::Or].include?(value.class)
           association = association_from_parent_and_column(parent, column)
-          value.to_predicate(self, association || column)
-        elsif value.is_a?(Array) && !value.empty? && value.all? {|v| v.respond_to?(:to_predicate)}
+          predicate_accept(value, association || column)
+        elsif value.is_a?(Array) && !value.empty? && value.all? {|v| can_predicate?(v)}
           association = association_from_parent_and_column(parent, column)
-          value.map {|val| val.to_predicate(self, association || column)}
+          value.map {|val| predicate_accept(val, association || column)}
         else
           if column.is_a?(MetaWhere::Column)
             method = column.method
@@ -67,12 +72,12 @@ module MetaWhere
         if value.is_a?(Hash)
           association = association_from_parent_and_column(parent, column)
           build_attributes_from_hash(value, association || column)
-        elsif value.is_a?(Array) && value.all? {|v| v.respond_to?(:to_attribute)}
+        elsif value.is_a?(Array) && value.all? {|v| can_attribute?(v)}
           association = association_from_parent_and_column(parent, column)
-          value.map {|val| val.to_attribute(self, association || column)}
+          value.map {|val| self.attribute_accept(val, association || column)}
         else
           association = association_from_parent_and_column(parent, column)
-          value.respond_to?(:to_attribute) ? value.to_attribute(self, association || column) : value
+          can_attribute?(value) ? self.attribute_accept(value, association || column) : value
         end
       end
 

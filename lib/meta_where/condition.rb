@@ -12,19 +12,6 @@ module MetaWhere
       @method = (MetaWhere::METHOD_ALIASES[method.to_s] || method).to_s
     end
 
-    def to_predicate(builder, parent = nil)
-      table = builder.build_table(parent)
-
-      unless attribute = attribute_from_column_and_table(column, table)
-        raise ::ActiveRecord::StatementInvalid, "No attribute named `#{column}` exists for table `#{table.name}`"
-      end
-
-      unless valid_comparison_method?(method)
-        raise ::ActiveRecord::StatementInvalid, "No comparison method named `#{method}` exists for column `#{column}`"
-      end
-      attribute.send(method, args_for_predicate(value))
-    end
-
     def ==(other_condition)
       other_condition.is_a?(Condition) &&
       other_condition.column == column &&

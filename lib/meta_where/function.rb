@@ -13,16 +13,10 @@ module MetaWhere
       self
     end
 
-    def to_predicate(builder, parent = nil)
-      self.table = builder.build_table(parent)
-
-      to_sqlliteral
-    end
-
     def to_sqlliteral
       Arel.sql(
         ("#{name}(#{(['%s'] * args.size).join(',')})" % contextualize_args) +
-        (self.alias ? " AS #{Arel.sql(self.alias.to_s)}" : '')
+        (self.alias ? " AS #{self.alias}" : '')
       )
     end
 
@@ -63,7 +57,7 @@ module MetaWhere
     # Won't work on Ruby 1.8.x so need to do this conditionally
     if respond_to?('!~')
       define_method('!~') do |value|
-        MetaWhere::Condition.new(self, value, :not_matches)
+        MetaWhere::Condition.new(self, value, :does_not_match)
       end
     end
 

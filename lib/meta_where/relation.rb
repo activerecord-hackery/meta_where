@@ -18,7 +18,7 @@ module MetaWhere
         association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
                              default_association.name : r.table_name.to_sym
         r = r.clone
-        r.where_values.map! {|w| w.respond_to?(:to_predicate) ? {association_name => w} : w}
+        r.where_values.map! {|w| [Hash, MetaWhere::Or, MetaWhere::And, MetaWhere::Condition, MetaWhere::Function].include?(w.class) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash, MetaWhere::JoinType].include?(j.class) ? {association_name => j} : j}
         self.joins_values += [association_name]
       end
@@ -138,7 +138,7 @@ module MetaWhere
     def construct_limited_ids_condition(relation)
       builder = relation.metawhere_builder
 
-      relation.order_values.map! {|o| o.respond_to?(:to_attribute) ? o.to_attribute(builder).to_sql : o}
+      relation.order_values.map! {|o| builder.can_attribute?(o) ? builder.attribute_accept(o).to_sql : o}
 
       super
     end
@@ -225,7 +225,7 @@ module MetaWhere
 
     def build_order(arel, builder, orders)
       order_attributes = orders.map {|o|
-        o.respond_to?(:to_attribute) ? o.to_attribute(builder, builder.join_dependency.join_base) : o
+        builder.can_attribute?(o) ? builder.attribute_accept(o, builder.join_dependency.join_base) : o
       }.flatten.uniq.reject {|o| o.blank?}
       order_attributes.present? ? arel.order(*order_attributes) : arel
     end
@@ -241,7 +241,7 @@ module MetaWhere
 
     def flatten_predicates(predicates, builder)
       predicates.map {|p|
-        predicate = p.respond_to?(:to_predicate) ? p.to_predicate(builder) : p
+        predicate = builder.can_predicate?(p) ? builder.predicate_accept(p) : p
         if predicate.is_a?(Arel::Nodes::Grouping) && predicate.expr.is_a?(Arel::Nodes::And)
           flatten_predicates([predicate.expr.left, predicate.expr.right], builder)
         else

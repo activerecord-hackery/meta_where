@@ -26,7 +26,7 @@ class Symbol
   # Won't work on Ruby 1.8.x so need to do this conditionally
   if respond_to?('!~')
     define_method('!~') do |value|
-      MetaWhere::Condition.new(self, value, :not_matches)
+      MetaWhere::Condition.new(self, value, :does_not_match)
     end
   end
 

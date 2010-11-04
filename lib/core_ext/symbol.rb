@@ -11,16 +11,6 @@ class Symbol
     end
   end
 
-  def to_attribute(builder, parent = nil)
-    table = builder.build_table(parent)
-
-    unless attribute = table[self]
-      raise ::ActiveRecord::StatementInvalid, "No attribute named `#{self}` exists for table `#{table.name}`"
-    end
-
-    attribute
-  end
-
   def mw_func(*args)
     MetaWhere::Function.new(self, *args)
   end
