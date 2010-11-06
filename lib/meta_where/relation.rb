@@ -74,7 +74,7 @@ module MetaWhere
 
         case join
         when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
-          arel = arel.join(join.relation, Arel::OuterJoin).on(*join.on)
+          arel = arel.join(join.relation, Arel::Nodes::OuterJoin).on(*join.on)
         when Hash, Array, Symbol
           if array_of_strings?(join)
             join_string = join.join(' ')

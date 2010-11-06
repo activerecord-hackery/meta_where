@@ -11,7 +11,7 @@ module MetaWhere
     class ConfigurationError < StandardError; end
     class AssociationNotFoundError < StandardError; end
 
-    def build_with_metawhere(associations, parent = nil, join_type = Arel::InnerJoin)
+    def build_with_metawhere(associations, parent = nil, join_type = Arel::Nodes::InnerJoin)
       if MetaWhere::JoinType === associations
         parent||= @joins.last
         reflection = parent.reflections[associations.name] or

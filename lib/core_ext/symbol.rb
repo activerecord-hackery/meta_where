@@ -18,11 +18,11 @@ class Symbol
   alias_method :func, :mw_func unless method_defined?(:func)
 
   def inner
-    MetaWhere::JoinType.new(self, Arel::InnerJoin)
+    MetaWhere::JoinType.new(self, Arel::Nodes::InnerJoin)
   end
 
   def outer
-    MetaWhere::JoinType.new(self, Arel::OuterJoin)
+    MetaWhere::JoinType.new(self, Arel::Nodes::OuterJoin)
   end
 
   def asc

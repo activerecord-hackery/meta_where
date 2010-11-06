@@ -2,7 +2,7 @@ module MetaWhere
   class JoinType
     attr_reader :name, :join_type
 
-    def initialize(name, join_type = Arel::InnerJoin)
+    def initialize(name, join_type = Arel::Nodes::InnerJoin)
       @name = name
       @join_type = join_type
     end
