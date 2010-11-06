@@ -1,3 +1,15 @@
+Changes since 0.9.6 (2010-09-30):
+  * ARel 2.x and Rails 3.0.2 compatibility
+  * Allow MetaWhere::And and MetaWhere::Or on the value side of a condition hash
+    to trigger treatment of key as an association.
+    ex: :comments => (:created_at.lt % 1.day.ago | :body.matches % '%hey%')
+  * Support for selecting join type: :association.outer / :association.inner results
+    in an outer or inner join.
+  * Having clauses are now fully MetaWhere-enabled.
+  * SQL functions are now supported. :concat.func(val1, val2) will result in an
+    SQL concat() call, with two parameters. If you've enabled Symbol operators, then
+    you can also just do :concat[val1, val2].
+
 Changes since 0.9.5 (2010-09-27):
   * Don't skip adding condition if an empty array is supplied
 

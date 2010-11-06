@@ -68,7 +68,7 @@ to enclose other conditions in {}, you should place operator conditions before a
 
 Operators are:
 
-* [] (equal)
+* >> (equal)
 * ^ (not equal)
 * + (in array/range)
 * - (not in array/range)
@@ -78,6 +78,7 @@ Operators are:
 * >= (greater than or equal to)
 * < (less than)
 * <= (less than or equal to)
+* [] (SQL functions -- more on those below)
 
 === Compounds
 You can use the & and | operators to perform ands and ors within your queries.
@@ -148,6 +149,33 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
 
 (*) Formatting added for clarity. I said you could do this, not that you should. :)
 
+== Join type specification
+You can choose whether to use an inner join (the default) or a left outer join by tacking
+<tt>.outer</tt> or <tt>.inner</tt> to the symbols specified in your joins() call:
+
+  Article.joins(:comments => :moderations.outer).to_sql
+  => SELECT "articles".* FROM "articles"
+     INNER JOIN "comments" ON "comments"."article_id" = "articles"."id"
+     LEFT OUTER JOIN "moderations" ON "moderations"."comment_id" = "comments"."id"
+
+== SQL Functions
+You can use SQL functions in your queries:
+
+  Manager.joins(:employees.outer).group('managers.id').
+          having(:employees => (:count.func(:id) < 3))
+  => SELECT "managers".* FROM "managers"
+     LEFT OUTER JOIN "employees" ON "employees"."manager_id" = "managers"."id"
+     GROUP BY managers.id HAVING count("employees"."id") < 3
+
+If you enable Symbol operators, you can just use <tt>:count[:id]</tt>, instead of calling
+<tt>func</tt> as shown above. SQL functions work in the SELECT, WHERE, and HAVING clauses,
+and can be aliased with <tt>as</tt>:
+
+  Manager.select('managers.*').
+          select(:find_in_set[:id, '3,2,1'].as('position'))
+  => SELECT managers.*, find_in_set("managers"."id",'3,2,1') AS position
+     FROM "managers"
+
 === But wait, there's more!
 
 == Intelligent hash condition mapping
@@ -182,7 +210,7 @@ With MetaWhere:
   => SELECT "articles".* FROM "articles" INNER JOIN "comments"
      ON "comments"."article_id" = "articles"."id" WHERE (("comments"."body" = 'hey'))
 
-The general idea is that if an association with the name provided exists, MetaWhere::Builder
+The general idea is that if an association with the name provided exists, MetaWhere
 will build the conditions against that association's table as it's been aliased, before falling
 back to assuming you're specifying a table by name. It also handles nested associations:
 
