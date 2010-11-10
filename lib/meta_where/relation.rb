@@ -15,12 +15,12 @@ module MetaWhere
 
     def merge(r, association_name = nil)
       if (r && (association_name || base_class.name != r.klass.base_class.name)) # Merging relations with different base.
-        association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.klass.name == r.klass.name}) ?
+        association_name ||= (default_association = reflect_on_all_associations.detect {|a| a.class_name == r.klass.name}) ?
                              default_association.name : r.table_name.to_sym
         r = r.clone
         r.where_values.map! {|w| MetaWhere::Visitors::Predicate.visitables.include?(w.class) ? {association_name => w} : w}
         r.joins_values.map! {|j| [Symbol, Hash, MetaWhere::JoinType].include?(j.class) ? {association_name => j} : j}
-        self.joins_values += [association_name]
+        self.joins_values += [association_name] if reflect_on_association(association_name)
       end
 
       super(r)
