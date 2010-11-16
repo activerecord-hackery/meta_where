@@ -303,4 +303,16 @@ class TestRelations < Test::Unit::TestCase
       end
     end
   end
+
+  context "A Developer relation" do
+    setup do
+      @r = Developer.scoped
+    end
+
+    should "allow a hash with another relation as a value" do
+      query = @r.where(:company_id => Company.where(:name.matches => '%i%'))
+      assert_match /IN \(1, 2, 3\)/, query.to_sql
+      assert_same_elements Developer.all, query.all
+    end
+  end
 end

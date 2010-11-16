@@ -20,8 +20,12 @@ module MetaWhere
 
     def args_for_predicate(value)
       case value
-      when ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
-        value.to_a
+      when Array, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
+        value.to_a.map { |x|
+          x.respond_to?(:quoted_id) ? x.quoted_id : x
+        }
+      when ActiveRecord::Base
+        value.quoted_id
       else
         value
       end
@@ -29,7 +33,7 @@ module MetaWhere
 
     def method_from_value(value)
       case value
-      when Array, Range, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation
+      when Array, Range, ActiveRecord::Associations::AssociationCollection, ActiveRecord::Relation, Arel::Relation
         :in
       else
         :eq
