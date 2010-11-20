@@ -9,7 +9,7 @@ module MetaWhere
       end
 
       def visit_Hash(o, parent)
-        table = build_table(parent)
+        table = tables[parent]
         built_attributes = o.map do |column, value|
           if value.is_a?(Hash)
             association = association_from_parent_and_column(parent, column)
@@ -27,7 +27,7 @@ module MetaWhere
       end
 
       def visit_Symbol(o, parent)
-        table = self.build_table(parent)
+        table = tables[parent]
 
         unless attribute = table[o]
           raise ::ActiveRecord::StatementInvalid, "No attribute named `#{o}` exists for table `#{table.name}`"
@@ -42,7 +42,7 @@ module MetaWhere
           table_name, column_name = column_name.split('.', 2)
           table = Arel::Table.new(table_name, :engine => parent.arel_engine)
         else
-          table = self.build_table(parent)
+          table = tables[parent]
         end
 
         unless attribute = table[column_name]

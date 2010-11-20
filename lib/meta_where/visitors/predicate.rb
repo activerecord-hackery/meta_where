@@ -10,7 +10,7 @@ module MetaWhere
 
       def visit_Hash(o, parent)
         parent ||= join_dependency.join_base
-        table = build_table(parent)
+        table = tables[parent]
         predicates = o.map do |column, value|
           if value.is_a?(Hash)
             association = association_from_parent_and_column(parent, column)
@@ -65,7 +65,7 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Condition(o, parent)
-        table = self.build_table(parent)
+        table = tables[parent]
 
         unless attribute = attribute_from_column_and_table(o.column, table)
           raise ::ActiveRecord::StatementInvalid, "No attribute named `#{o.column}` exists for table `#{table.name}`"
@@ -78,7 +78,7 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Function(o, parent)
-        self.table = self.build_table(parent)
+        self.table = tables[parent]
 
         o.to_sqlliteral
       end

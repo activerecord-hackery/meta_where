@@ -34,7 +34,7 @@ module MetaWhere
 
     def scope_for_create_with_metawhere
       @scope_for_create ||= begin
-        @create_with_value || predicate_wheres.inject({}) do |hash, where|
+        @create_with_value || predicates_without_conflicting_equality.inject({}) do |hash, where|
           if is_equality_predicate?(where)
             hash[where.left.name] = where.right.respond_to?(:value) ? where.right.value : where.right
           end
@@ -108,7 +108,7 @@ module MetaWhere
       arel.joins(arel)
     end unless defined?(:custom_join_sql)
 
-    def predicate_wheres
+    def predicates_without_conflicting_equality
       remove_conflicting_equality_predicates(flatten_predicates(@where_values, predicate_visitor))
     end
 
@@ -155,19 +155,9 @@ module MetaWhere
 
       arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
 
-      predicate_wheres = remove_conflicting_equality_predicates(flatten_predicates(@where_values, visitor))
+      predicate_wheres = flatten_predicates(@where_values, visitor)
 
-      predicate_wheres.each do |where|
-        next if where.blank?
-
-        case where
-        when Arel::Nodes::SqlLiteral
-          arel = arel.where(where)
-        else
-          sql = where.is_a?(String) ? where : where.to_sql
-          arel = arel.where(Arel::Nodes::SqlLiteral.new("(#{sql})"))
-        end
-      end
+      arel = collapse_wheres(arel, (predicate_wheres - ['']).uniq)
 
       arel = arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
 
@@ -244,6 +234,27 @@ module MetaWhere
       }.reverse
     end
 
+    def collapse_wheres(arel, wheres)
+      binaries = wheres.grep(Arel::Nodes::Binary)
+
+      groups = binaries.group_by do |binary|
+        [binary.class, binary.left]
+      end
+
+      groups.each do |_, bins|
+        test = bins.inject(bins.shift) do |memo, expr|
+          memo.or(expr)
+        end
+        arel = arel.where(test)
+      end
+
+      (wheres - binaries).each do |where|
+        where = Arel.sql(where) if String === where
+        arel = arel.where(Arel::Nodes::Grouping.new(where))
+      end
+      arel
+    end
+
     def flatten_predicates(predicates, visitor)
       predicates.map {|p|
         predicate = visitor.can_accept?(p) ? visitor.accept(p) : p
@@ -266,7 +277,7 @@ module MetaWhere
     end
 
     def stashed_association_joins
-      @mw_stashed_association_joins ||= unique_joins.select {|j| j.is_a?(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)}
+      @mw_stashed_association_joins ||= unique_joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
     end
 
     def non_association_joins
