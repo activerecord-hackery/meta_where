@@ -327,4 +327,57 @@ class TestRelations < Test::Unit::TestCase
                    @r.where(:name => 'blah').where(:name.matches => '%blah2%').to_sql
     end
   end
+
+  context "A relation" do
+    should "allow conditions on a belongs_to polymorphic association with an object" do
+      dev = Developer.first
+      assert_equal dev, Note.where(:notable => dev).first.notable
+    end
+
+    should "allow conditions on a belongs_to association with an object" do
+      company = Company.first
+      assert_same_elements Developer.where(:company_id => company.id),
+                           Developer.where(:company => company).all
+    end
+
+    should "allow conditions on a has_and_belongs_to_many association with an object" do
+      project = Project.first
+      assert_same_elements Developer.joins(:projects).where(:projects => {:id => project.id}),
+                           Developer.joins(:projects).where(:projects => project)
+    end
+
+    should "not allow an object of the wrong class to be passed to a non-polymorphic association" do
+      company = Company.first
+      assert_raise ArgumentError do
+        Project.where(:developers => company).all
+      end
+    end
+
+    should "allow multiple AR objects on the value side of an association condition" do
+      projects = [Project.first, Project.last]
+      assert_same_elements Developer.joins(:projects).where(:projects => {:id => projects.map(&:id)}),
+                           Developer.joins(:projects).where(:projects => projects)
+    end
+
+    should "allow multiple different kinds of AR objects on the value side of a polymorphic belongs_to" do
+      dev1 = Developer.first
+      dev2 = Developer.last
+      project = Project.first
+      company = Company.first
+      assert_same_elements Note.where(
+                                       {:notable_type => project.class.name, :notable_id => project.id} |
+                                       {:notable_type => dev1.class.name, :notable_id => [dev1.id, dev2.id]} |
+                                       {:notable_type => company.class.name, :notable_id => company.id}
+                                     ),
+                           Note.where(:notable => [dev1, dev2, project, company]).all
+    end
+
+    should "allow an AR object on the value side of a polymorphic has_many condition" do
+      note = Note.first
+      peter = Developer.first
+
+      assert_equal [peter],
+                   Developer.joins(:notes).where(:notes => note).all
+    end
+  end
 end
