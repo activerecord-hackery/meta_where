@@ -365,9 +365,9 @@ class TestRelations < Test::Unit::TestCase
       project = Project.first
       company = Company.first
       assert_same_elements Note.where(
-                                       {:notable_type => project.class.base_class.name, :notable_id => project.id} |
-                                       {:notable_type => dev1.class.base_class.name, :notable_id => [dev1.id, dev2.id]} |
-                                       {:notable_type => company.class.base_class.name, :notable_id => company.id}
+                                       {:notable_type => project.class.name, :notable_id => project.id} |
+                                       {:notable_type => dev1.class.name, :notable_id => [dev1.id, dev2.id]} |
+                                       {:notable_type => company.class.name, :notable_id => company.id}
                                      ),
                            Note.where(:notable => [dev1, dev2, project, company]).all
     end
@@ -383,16 +383,7 @@ class TestRelations < Test::Unit::TestCase
       dev = Developer.first
       company = Company.first
       assert_equal [company.notes.first],
-                   Note.joins(:notable.type(Company) => :developers).where(:notable => {:developers => dev}).all
-    end
-
-    should "allow a join of a polymorphic belongs_to relation with a type specified 2" do
-      dev = Developer.first
-      company = Company.first
-      note = Note.where(:notable_type => 'Project').first
-      assert_equal [note],
-                   Note.joins(:notable.type(Company), :notable.type(Developer), :notable.type(Project) => :notes).
-                        where(:notable.type(Project) => {:notes => note}).all
+                   Note.joins(:notable.type(Company)).where(:notable.type(Company) => {:id => 1}).all
     end
   end
 end
