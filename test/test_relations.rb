@@ -375,15 +375,9 @@ class TestRelations < Test::Unit::TestCase
     should "allow an AR object on the value side of a polymorphic has_many condition" do
       note = Note.first
       peter = Developer.first
+
       assert_equal [peter],
                    Developer.joins(:notes).where(:notes => note).all
-    end
-
-    should "allow a join of a polymorphic belongs_to relation with a type specified" do
-      dev = Developer.first
-      company = Company.first
-      assert_equal [company.notes.first],
-                   Note.joins(:notable.type(Company)).where(:notable.type(Company) => {:id => 1}).all
     end
   end
 end
