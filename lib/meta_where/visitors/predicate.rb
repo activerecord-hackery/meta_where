@@ -10,6 +10,7 @@ module MetaWhere
 
       def visit_Hash(o, parent)
         parent ||= join_dependency.join_base
+        parent = parent.name if parent.is_a? MetaWhere::JoinType
         table = tables[parent]
         predicates = o.map do |column, value|
           if value.is_a?(Hash)
@@ -43,7 +44,6 @@ module MetaWhere
                 conditions = conditions ? conditions | condition : condition
               end
 
-              conditions = [conditions, reflection.options[:conditions]] if reflection.options[:conditions]
               accept(conditions, association_from_parent_and_column(parent, column) || column)
             when :belongs_to
               conditions = nil
@@ -59,14 +59,7 @@ module MetaWhere
                 conditions = conditions ? conditions | condition : condition
               end
 
-              if reflection.options[:conditions]
-                [
-                  accept(conditions, parent),
-                  sanitize_or_accept_reflection_conditions(reflection, parent, column)
-                ]
-              else
-                accept(conditions, parent)
-              end
+              accept(conditions, parent)
             end
           else
             if column.is_a?(MetaWhere::Column)
@@ -142,7 +135,7 @@ module MetaWhere
       private
 
       def sanitize_or_accept_reflection_conditions(reflection, parent, column)
-        if reflection.options[:polymorphic] || !can_accept?(reflection.options[:conditions])
+        if !can_accept?(reflection.options[:conditions])
           reflection.sanitized_conditions
         else
           accept(reflection.options[:conditions], association_from_parent_and_column(parent, column) || column)
