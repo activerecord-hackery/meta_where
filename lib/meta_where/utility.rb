@@ -3,7 +3,7 @@ module MetaWhere
     private
 
     def array_of_activerecords(val)
-      val.is_a?(Array) && val.all? {|v| v.is_a?(ActiveRecord::Base)}
+      val.is_a?(Array) && !val.empty? && val.all? {|v| v.is_a?(ActiveRecord::Base)}
     end
 
     def association_from_parent_and_column(parent, column)

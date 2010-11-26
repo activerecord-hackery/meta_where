@@ -24,44 +24,7 @@ module MetaWhere
             value.map {|val| accept(val, association || column)}
           elsif (value.is_a?(ActiveRecord::Base) || array_of_activerecords(value)) &&
               reflection = parent.active_record.reflect_on_association(column.is_a?(MetaWhere::JoinType) ? column.name : column)
-            groups = Array.wrap(value).group_by {|v| v.class}
-            unless reflection.options[:polymorphic] || groups.keys.all? {|k| reflection.klass >= k}
-              raise ArgumentError, "An object you supplied to :#{reflection.name} is not a #{reflection.klass}!"
-            end
-            case reflection.macro
-            when :has_many, :has_one, :has_and_belongs_to_many
-              conditions = nil
-              groups.each do |klass, values|
-                condition = if reflection.options[:as]
-                  {
-                    (reflection.options[:as].to_s + '_id').to_sym => values.size == 1 ? values.first.id : values.map(&:id),
-                    (reflection.options[:as].to_s + '_type').to_sym => parent.active_record.name
-                  }
-                else
-                  {
-                    (reflection.options[:foreign_key] || reflection.klass.primary_key).to_sym => values.size == 1 ? values.first.id : values.map(&:id)
-                  }
-                end
-                conditions = conditions ? conditions | condition : condition
-              end
-
-              accept(conditions, association_from_parent_and_column(parent, column) || column)
-            when :belongs_to
-              conditions = nil
-              groups.each do |klass, values|
-                condition = if reflection.options[:polymorphic]
-                  {
-                    (reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id),
-                    reflection.options[:foreign_type].to_sym => klass.name
-                  }
-                else
-                  {(reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id)}
-                end
-                conditions = conditions ? conditions | condition : condition
-              end
-
-              accept(conditions, parent)
-            end
+            accept_activerecord_values(column, value, parent, reflection)
           else
             if column.is_a?(MetaWhere::Column)
               method = column.method
@@ -134,6 +97,40 @@ module MetaWhere
       end
 
       private
+
+      def accept_activerecord_values(column, value, parent, reflection)
+        groups = Array.wrap(value).group_by {|v| v.class.base_class}
+        unless reflection.options[:polymorphic] || groups.keys.all? {|k| reflection.klass == k}
+          raise ArgumentError, "An object you supplied to :#{reflection.name} is not a #{reflection.klass}!"
+        end
+        case reflection.macro
+        when :has_many, :has_one, :has_and_belongs_to_many
+          conditions = nil
+          groups.each do |klass, values|
+            condition = {
+              (reflection.options[:foreign_key] || reflection.klass.primary_key).to_sym => values.size == 1 ? values.first.id : values.map(&:id)
+            }
+            conditions = conditions ? conditions | condition : condition
+          end
+
+          accept(conditions, association_from_parent_and_column(parent, column) || column)
+        when :belongs_to
+          conditions = nil
+          groups.each do |klass, values|
+            condition = if reflection.options[:polymorphic]
+              {
+                (reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id),
+                reflection.options[:foreign_type].to_sym => klass.name
+              }
+            else
+              {(reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id)}
+            end
+            conditions = conditions ? conditions | condition : condition
+          end
+
+          accept(conditions, parent)
+        end
+      end
 
       def sanitize_or_accept_reflection_conditions(reflection, parent, column)
         if !can_accept?(reflection.options[:conditions])

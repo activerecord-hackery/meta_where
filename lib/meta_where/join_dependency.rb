@@ -27,6 +27,7 @@ module MetaWhere
         unless (association = find_join_association(reflection, parent)) && (!klass || association.active_record == klass)
           @reflections << reflection
           if reflection.options[:polymorphic]
+            raise ArgumentError, "You can't create a polymorphic belongs_to join without specifying the polymorphic class!" unless klass
             association = build_polymorphic_join_association(reflection, parent, klass)
           else
             association = build_join_association(reflection, parent)
@@ -41,7 +42,8 @@ module MetaWhere
     end
 
     def find_join_association_with_metawhere(name_or_reflection, parent)
-      if MetaWhere::JoinType === name_or_reflection
+      case name_or_reflection
+      when MetaWhere::JoinType
         join_associations.detect do |j|
           (j.reflection.name == name_or_reflection.name) &&
           (j.reflection.klass == name_or_reflection.klass) &&
@@ -89,16 +91,8 @@ module MetaWhere
 
       @join = [
         aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name]),
-        parent_table[options[:foreign_type]].eq(active_record.base_class.name)
+        parent_table[options[:foreign_type]].eq(active_record.name)
       ]
-
-      unless klass.descends_from_active_record?
-        sti_column = aliased_table[klass.inheritance_column]
-        sti_condition = sti_column.eq(klass.sti_name)
-        klass.descendants.each {|subclass| sti_condition = sti_condition.or(sti_column.eq(subclass.sti_name)) }
-
-        @join << sti_condition
-      end
 
       @join
     end
