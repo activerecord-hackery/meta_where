@@ -66,19 +66,19 @@ mission_data:
 
 y2k:
   id          : 12
-  notable_type: FixedBidProject
+  notable_type: Project
   notable_id  : 1
   note        : It may have already passed but that's no excuse to be unprepared!
 
 virus:
   id          : 13
-  notable_type: FixedBidProject
+  notable_type: Project
   notable_id  : 2
   note        : It could bring the company to its knees.
 
 awesome:
   id          : 14
-  notable_type: FixedBidProject
+  notable_type: Project
   notable_id  : 3
   note        : This note is AWESOME!!!
 
