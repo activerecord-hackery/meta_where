@@ -9,7 +9,6 @@ module MetaWhere
       end
 
       def visit_Hash(o, parent)
-        parent = parent.name if parent.is_a? MetaWhere::JoinType
         table = tables[parent]
         built_attributes = o.map do |column, value|
           if value.is_a?(Hash)
