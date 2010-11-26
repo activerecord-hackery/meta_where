@@ -22,7 +22,8 @@ module MetaWhere
           elsif value.is_a?(Array) && !value.empty? && value.all? {|v| can_accept?(v)}
             association = association_from_parent_and_column(parent, column)
             value.map {|val| accept(val, association || column)}
-          elsif (value.is_a?(ActiveRecord::Base) || array_of_activerecords(value)) && reflection = parent.active_record.reflect_on_association(column)
+          elsif (value.is_a?(ActiveRecord::Base) || array_of_activerecords(value)) &&
+              reflection = parent.active_record.reflect_on_association(column.is_a?(MetaWhere::JoinType) ? column.name : column)
             groups = Array.wrap(value).group_by {|v| v.class}
             unless reflection.options[:polymorphic] || groups.keys.all? {|k| reflection.klass >= k}
               raise ArgumentError, "An object you supplied to :#{reflection.name} is not a #{reflection.klass}!"
