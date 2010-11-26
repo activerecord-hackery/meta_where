@@ -386,23 +386,13 @@ class TestRelations < Test::Unit::TestCase
                    Note.joins(:notable.type(Company) => :developers).where(:notable => {:developers => dev}).all
     end
 
-    should "allow selection of a specific polymorphic join by name in the where clause" do
+    should "allow a join of a polymorphic belongs_to relation with a type specified 2" do
       dev = Developer.first
       company = Company.first
-      project = Project.first
-      dev_note = dev.notes.first
-      company_note = company.notes.first
-      project_note = project.notes.first
-      # Have to use outer joins since one inner join will cause remaining rows to be missing
-      # This is pretty convoluted, and way beyond the normal use case for polymorphic belongs_to
-      # joins anyway.
-      @r = Note.joins(:notable.type(Company) => :notes.outer, :notable.type(Developer) => :notes.outer, :notable.type(Project) => :notes.outer)
-      assert_equal [dev_note],
-                    @r.where(:notable.type(Developer) => {:notes => dev_note}).all
-      assert_equal [company_note],
-                    @r.where(:notable.type(Company) => {:notes => company_note}).all
-      assert_equal [project_note],
-                    @r.where(:notable.type(Project) => {:notes => project_note}).all
+      note = Note.where(:notable_type => 'Project').first
+      assert_equal [note],
+                   Note.joins(:notable.type(Company), :notable.type(Developer), :notable.type(Project) => :notes).
+                        where(:notable.type(Project) => {:notes => note}).all
     end
   end
 end
