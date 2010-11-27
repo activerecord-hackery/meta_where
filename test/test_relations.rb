@@ -331,7 +331,7 @@ class TestRelations < Test::Unit::TestCase
   context "A relation" do
     should "allow conditions on a belongs_to polymorphic association with an object" do
       dev = Developer.first
-      assert_equal dev, Note.where(:notable => dev).first.notable
+      assert_equal dev, Note.where(:notable.type(Developer) => dev).first.notable
     end
 
     should "allow conditions on a belongs_to association with an object" do
@@ -403,6 +403,10 @@ class TestRelations < Test::Unit::TestCase
                     @r.where(:notable.type(Company) => {:notes => company_note}).all
       assert_equal [project_note],
                     @r.where(:notable.type(Project) => {:notes => project_note}).all
+    end
+
+    should "maintain belongs_to conditions in a polymorphic join" do
+      puts Note.joins(:notable.type(Company)).to_sql
     end
   end
 end

@@ -68,7 +68,7 @@ module MetaWhere
       @join_dependency    = join_dependency
       @parent             = parent || join_dependency.join_base
       @reflection         = reflection.clone
-      @reflection.instance_eval "def klass; #{polymorphic_class} end"
+      @reflection.instance_eval "def klass; #{polymorphic_class} end;"
       @aliased_prefix     = "t#{ join_dependency.joins.size }"
       @parent_table_name  = @parent.active_record.table_name
       @aliased_table_name = aliased_table_name_for(table_name)
@@ -93,6 +93,10 @@ module MetaWhere
         aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name]),
         parent_table[options[:foreign_type]].eq(active_record.name)
       ]
+
+      if options[:conditions]
+        @join << interpolate_sql(sanitize_sql(options[:conditions], aliased_table_name))
+      end
 
       @join
     end
