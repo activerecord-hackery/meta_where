@@ -396,7 +396,7 @@ class TestRelations < Test::Unit::TestCase
       # Have to use outer joins since one inner join will cause remaining rows to be missing
       # This is pretty convoluted, and way beyond the normal use case for polymorphic belongs_to
       # joins anyway.
-      @r = Note.joins(:notable.type(Company) => :notes.outer, :notable.type(Developer) => :notes.outer, :notable.type(Project) => :notes.outer)
+      @r = Note.joins(:notable.type(Company).outer => :notes.outer, :notable.type(Developer).outer => :notes.outer, :notable.type(Project).outer => :notes.outer)
       assert_equal [dev_note],
                     @r.where(:notable.type(Developer) => {:notes => dev_note}).all
       assert_equal [company_note],

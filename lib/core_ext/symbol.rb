@@ -26,7 +26,7 @@ class Symbol
   end
 
   def type(klass)
-    MetaWhere::JoinType.new(self, Arel::Nodes::OuterJoin, klass)
+    MetaWhere::JoinType.new(self, Arel::Nodes::InnerJoin, klass)
   end
 
   def asc

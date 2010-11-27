@@ -22,15 +22,18 @@ module MetaWhere
     end
 
     def outer
-      @join_type == Arel::Nodes::OuterJoin
+      @join_type = Arel::Nodes::OuterJoin
+      self
     end
 
     def inner
-      @join_type == Arel::Nodes::InnerJoin
+      @join_type = Arel::Nodes::InnerJoin
+      self
     end
 
     def type(klass)
       @klass = klass
+      self
     end
 
     def to_sym
