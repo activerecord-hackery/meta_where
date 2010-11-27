@@ -406,7 +406,7 @@ class TestRelations < Test::Unit::TestCase
     end
 
     should "maintain belongs_to conditions in a polymorphic join" do
-      puts Note.joins(:notable.type(Company)).to_sql
+      assert_match /1=1/, Note.joins(:notable.type(Company)).to_sql
     end
   end
 end
