@@ -2,6 +2,10 @@ module MetaWhere
   module Utility
     private
 
+    def array_of_activerecords(val)
+      val.is_a?(Array) && !val.empty? && val.all? {|v| v.is_a?(ActiveRecord::Base)}
+    end
+
     def association_from_parent_and_column(parent, column)
       parent.is_a?(Symbol) ? nil : @join_dependency.send(:find_join_association, column, parent)
     end

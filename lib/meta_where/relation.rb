@@ -155,7 +155,7 @@ module MetaWhere
 
       arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
 
-      predicate_wheres = flatten_predicates(@where_values, visitor)
+      predicate_wheres = flatten_predicates(@where_values.uniq, visitor)
 
       arel = collapse_wheres(arel, (predicate_wheres - ['']).uniq)
 

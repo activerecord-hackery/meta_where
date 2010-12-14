@@ -327,4 +327,86 @@ class TestRelations < Test::Unit::TestCase
                    @r.where(:name => 'blah').where(:name.matches => '%blah2%').to_sql
     end
   end
+
+  context "A relation" do
+    should "allow conditions on a belongs_to polymorphic association with an object" do
+      dev = Developer.first
+      assert_equal dev, Note.where(:notable.type(Developer) => dev).first.notable
+    end
+
+    should "allow conditions on a belongs_to association with an object" do
+      company = Company.first
+      assert_same_elements Developer.where(:company_id => company.id),
+                           Developer.where(:company => company).all
+    end
+
+    should "allow conditions on a has_and_belongs_to_many association with an object" do
+      project = Project.first
+      assert_same_elements Developer.joins(:projects).where(:projects => {:id => project.id}),
+                           Developer.joins(:projects).where(:projects => project)
+    end
+
+    should "not allow an object of the wrong class to be passed to a non-polymorphic association" do
+      company = Company.first
+      assert_raise ArgumentError do
+        Project.where(:developers => company).all
+      end
+    end
+
+    should "allow multiple AR objects on the value side of an association condition" do
+      projects = [Project.first, Project.last]
+      assert_same_elements Developer.joins(:projects).where(:projects => {:id => projects.map(&:id)}),
+                           Developer.joins(:projects).where(:projects => projects)
+    end
+
+    should "allow multiple different kinds of AR objects on the value side of a polymorphic belongs_to" do
+      dev1 = Developer.first
+      dev2 = Developer.last
+      project = Project.first
+      company = Company.first
+      assert_same_elements Note.where(
+                                       {:notable_type => project.class.base_class.name, :notable_id => project.id} |
+                                       {:notable_type => dev1.class.base_class.name, :notable_id => [dev1.id, dev2.id]} |
+                                       {:notable_type => company.class.base_class.name, :notable_id => company.id}
+                                     ),
+                           Note.where(:notable => [dev1, dev2, project, company]).all
+    end
+
+    should "allow an AR object on the value side of a polymorphic has_many condition" do
+      note = Note.first
+      peter = Developer.first
+      assert_equal [peter],
+                   Developer.joins(:notes).where(:notes => note).all
+    end
+
+    should "allow a join of a polymorphic belongs_to relation with a type specified" do
+      dev = Developer.first
+      company = Company.first
+      assert_equal [company.notes.first],
+                   Note.joins(:notable.type(Company) => :developers).where(:notable => {:developers => dev}).all
+    end
+
+    should "allow selection of a specific polymorphic join by name in the where clause" do
+      dev = Developer.first
+      company = Company.first
+      project = Project.first
+      dev_note = dev.notes.first
+      company_note = company.notes.first
+      project_note = project.notes.first
+      # Have to use outer joins since one inner join will cause remaining rows to be missing
+      # This is pretty convoluted, and way beyond the normal use case for polymorphic belongs_to
+      # joins anyway.
+      @r = Note.joins(:notable.type(Company).outer => :notes.outer, :notable.type(Developer).outer => :notes.outer, :notable.type(Project).outer => :notes.outer)
+      assert_equal [dev_note],
+                    @r.where(:notable.type(Developer) => {:notes => dev_note}).all
+      assert_equal [company_note],
+                    @r.where(:notable.type(Company) => {:notes => company_note}).all
+      assert_equal [project_note],
+                    @r.where(:notable.type(Project) => {:notes => project_note}).all
+    end
+
+    should "maintain belongs_to conditions in a polymorphic join" do
+      assert_match /1=1/, Note.joins(:notable.type(Company)).to_sql
+    end
+  end
 end
