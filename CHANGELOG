@@ -1,3 +1,14 @@
+Changes since 0.9.9 (2010-11-15):
+  * Multiple conditions on the same column with the same predicate will be "OR"ed
+    instead of dropping all but the last one. This tracks the same behavior in
+    Rails 3-0-stable.
+  * You can specify a polymorphic belongs_to join via something like:
+    Model.joins(:joinable.type(PolymorphicClass))
+  * You can specify ActiveRecord objects as values:
+    Developer.joins(:projects).where(:projects => Project.first) is the same as
+    Developer.joins(:projects).where(:projects => {:id => Project.first.id}), but
+    less hashy.
+
 Changes since 0.9.6 (2010-09-30):
   * ARel 2.x and Rails 3.0.2 compatibility
   * Allow MetaWhere::And and MetaWhere::Or on the value side of a condition hash
