@@ -283,6 +283,47 @@ mapping," above) and also some convenience methods for ascending and descending 
      ORDER BY  "articles"."title" DESC,
        "comments"."created_at" ASC, "comments"."updated_at"
 
+== Polymorphic belongs_to joins
+
+Polymorphic associations provide great flexibility, but they can sometimes be a bit of a hassle
+when it comes to querying through a belongs_to association. First, you have to know what type
+you're looking for to do a proper join, and then, you're forced into using a string join in order
+to make it happen (which would prevent the use of MetaWhere intelligent condition mapping).
+
+MetaWhere allows you to join polymorphic belongs_to associations like this:
+
+  Note.joins(:notable.type(Developer)).
+       where(:notable.type(Developer) => {:name.matches => 'Ernie%'})
+  => SELECT "notes".* FROM "notes"
+     INNER JOIN "developers" ON "developers"."id" = "notes"."notable_id"
+       AND "notes"."notable_type" = 'Developer'
+     WHERE "developers"."name" LIKE 'Ernie%'
+
+== Using ActiveRecord objects as condition values
+
+Wouldn't it be nice if you could do something like this?
+
+  # Developer belongs_to Company
+  company = Company.find(123)
+  Developer.where(:company => company)
+
+  # Developer HABTM Projects
+  projects = [Project.first, Project.last]
+  Developer.joins(:projects).where(:projects => projects)
+
+  # Note belongs_to :notable, :polymorphic => true
+  dev1 = Developer.first
+  dev2 = Developer.last
+  project = Project.first
+  company = Company.first
+  Note.where(:notable => [dev1, dev2, project, company]).to_sql
+  => SELECT "notes".* FROM "notes" WHERE (((("notes"."notable_id" IN (1, 8)
+     AND "notes"."notable_type" = 'Developer') OR ("notes"."notable_id" = 1
+     AND "notes"."notable_type" = 'Project')) OR ("notes"."notable_id" = 1
+     AND "notes"."notable_type" = 'Company')))
+
+With MetaWhere, you can.
+
 == Thanks
 A huge thank you goes to Pratik Naik (lifo) for a dicussion on #rails-contrib about a patch
 I'd submitted, and his take on a DSL for query conditions, which was the inspiration for this
