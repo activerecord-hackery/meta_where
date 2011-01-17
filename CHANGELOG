@@ -1,3 +1,6 @@
+Changes since 0.9.10 (2011-01-06):
+  * Doc updates only, and a version change to 1.0.0.
+
 Changes since 0.9.9 (2010-11-15):
   * Multiple conditions on the same column with the same predicate will be "OR"ed
     instead of dropping all but the last one. This tracks the same behavior in
