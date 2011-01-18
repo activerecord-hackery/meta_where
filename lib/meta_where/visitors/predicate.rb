@@ -5,7 +5,7 @@ module MetaWhere
     class Predicate < Visitor
 
       def self.visitables
-        [Hash, Array, MetaWhere::Or, MetaWhere::And, MetaWhere::Condition, MetaWhere::Function]
+        [Hash, Array, MetaWhere::Or, MetaWhere::And, MetaWhere::Not, MetaWhere::Condition, MetaWhere::Function]
       end
 
       def visit_Hash(o, parent)
@@ -16,7 +16,7 @@ module MetaWhere
           if value.is_a?(Hash)
             association = association_from_parent_and_column(parent, column)
             accept(value, association || column)
-          elsif [MetaWhere::Condition, MetaWhere::And, MetaWhere::Or].include?(value.class)
+          elsif [MetaWhere::Condition, MetaWhere::And, MetaWhere::Or, MetaWhere::Not].include?(value.class)
             association = association_from_parent_and_column(parent, column)
             accept(value, association || column)
           elsif value.is_a?(Array) && !value.empty? && value.all? {|v| can_accept?(v)}
@@ -75,6 +75,10 @@ module MetaWhere
 
       def visit_MetaWhere_And(o, parent)
         accept(o.condition1, parent).and(accept(o.condition2, parent))
+      end
+
+      def visit_MetaWhere_Not(o, parent)
+        accept(o.condition1, parent).and(accept(o.condition2, parent).not)
       end
 
       def visit_MetaWhere_Condition(o, parent)

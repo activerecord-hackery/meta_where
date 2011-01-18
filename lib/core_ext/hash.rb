@@ -7,4 +7,8 @@ class Hash
   def &(other)
     MetaWhere::And.new(self, other)
   end
+
+  def -(other)
+    MetaWhere::Not.new(self, other)
+  end
 end

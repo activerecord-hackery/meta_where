@@ -29,6 +29,10 @@ module MetaWhere
       And.new(self, other)
     end
 
+    def -(other)
+      Not.new(self, other)
+    end
+
     # Play "nicely" with expand_hash_conditions_for_aggregates
     def to_sym
       self

@@ -14,11 +14,18 @@ module MetaWhere
     def &(other)
       And.new(self, other)
     end
+
+    def -(other)
+      Not.new(self, other)
+    end
   end
 
   class Or < Compound
   end
 
   class And < Compound
+  end
+
+  class Not < Compound
   end
 end

@@ -115,11 +115,13 @@ class TestRelations < Test::Unit::TestCase
       assert_equal @r.where(:name.like % 'Advanced%').all, @r.where('name LIKE ?', 'Advanced%').all
     end
 
-    should "allow | and & for compound predicates" do
+    should "allow |, &, and - for compound predicates" do
       assert_equal @r.where(:name.like % 'Advanced%' | :name.like % 'Init%').all,
                    @r.where('name LIKE ? OR name LIKE ?', 'Advanced%', 'Init%').all
       assert_equal @r.where(:name.like % 'Mission%' & :name.like % '%Data').all,
                    @r.where('name LIKE ? AND name LIKE ?', 'Mission%', '%Data').all
+      assert_equal @r.where(:name.like % 'Mission%' - :name.like % '%Data').all,
+                   @r.where('name LIKE ? AND name NOT LIKE ?', 'Mission%', '%Data').all
     end
 
     should "allow nested conditions hashes to have array values" do
@@ -140,6 +142,11 @@ class TestRelations < Test::Unit::TestCase
     should "allow nested conditions hashes to have MetaWhere::Or values" do
       assert_equal @r.joins(:data_types).where(:data_types => [:dec.gteq % 2 | :bln.eq % true]).all,
                    @r.joins(:data_types).where(:data_types => ((:dec >= 2) | (:bln >> true))).all
+    end
+
+    should "allow nested conditions hashes to have MetaWhere::Not values" do
+      assert_equal @r.joins(:data_types).where(:data_types => [:dec.gteq % 2 - :bln.eq % true]).all,
+                   @r.joins(:data_types).where(:data_types => ((:dec >= 2) - (:bln >> true))).all
     end
 
     should "allow combinations of options that no sane developer would ever try to use" do
