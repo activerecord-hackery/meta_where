@@ -28,7 +28,7 @@ module MetaWhere
           @reflections << reflection
           if reflection.options[:polymorphic]
             raise ArgumentError, "You can't create a polymorphic belongs_to join without specifying the polymorphic class!" unless klass
-            association = build_polymorphic_join_association(reflection, parent, klass)
+            association = PolymorphicJoinAssociation.new(reflection, self, klass, parent)
           else
             association = build_join_association(reflection, parent)
           end
@@ -52,10 +52,6 @@ module MetaWhere
       else
         find_join_association_without_metawhere(name_or_reflection, parent)
       end
-    end
-
-    def build_polymorphic_join_association(reflection, parent, klass)
-      PolymorphicJoinAssociation.new(reflection, self, klass, parent)
     end
   end
 
