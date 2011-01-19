@@ -1,8 +1,10 @@
 require 'meta_where/utility'
+require 'meta_where/condition_operators'
 
 module MetaWhere
   class Condition
-    include MetaWhere::Utility
+    include ConditionOperators
+    include Utility
 
     attr_reader :column, :value, :method
 
@@ -20,18 +22,6 @@ module MetaWhere
     end
 
     alias_method :eql?, :==
-
-    def |(other)
-      Or.new(self, other)
-    end
-
-    def &(other)
-      And.new(self, other)
-    end
-
-    def -(other)
-      Not.new(self, other)
-    end
 
     # Play "nicely" with expand_hash_conditions_for_aggregates
     def to_sym

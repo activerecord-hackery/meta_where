@@ -26,11 +26,16 @@ module MetaWhere
     require 'core_ext/symbol_operators'
   end
 end
+
 require 'arel'
 require 'active_record'
 require 'active_support'
+
+# TODO: Trim this down, as the individual files should be
+# handling their requires.
 require 'meta_where/column'
 require 'meta_where/condition'
+require 'meta_where/not'
 require 'meta_where/compound'
 require 'meta_where/function'
 require 'meta_where/join_type'

@@ -1,14 +1,5 @@
+require 'meta_where/condition_operators'
+
 class Hash
-
-  def |(other)
-    MetaWhere::Or.new(self, other)
-  end
-
-  def &(other)
-    MetaWhere::And.new(self, other)
-  end
-
-  def -(other)
-    MetaWhere::Not.new(self, other)
-  end
+  include MetaWhere::ConditionOperators
 end

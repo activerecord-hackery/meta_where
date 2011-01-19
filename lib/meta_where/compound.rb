@@ -1,22 +1,14 @@
+require 'meta_where/condition_operators'
+
 module MetaWhere
   class Compound
+    include ConditionOperators
+
     attr_reader :condition1, :condition2
 
     def initialize(condition1, condition2)
       @condition1 = condition1
       @condition2 = condition2
-    end
-
-    def |(other)
-      Or.new(self, other)
-    end
-
-    def &(other)
-      And.new(self, other)
-    end
-
-    def -(other)
-      Not.new(self, other)
     end
   end
 
@@ -24,8 +16,5 @@ module MetaWhere
   end
 
   class And < Compound
-  end
-
-  class Not < Compound
   end
 end

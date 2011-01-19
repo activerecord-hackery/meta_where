@@ -78,7 +78,7 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Not(o, parent)
-        accept(o.condition1, parent).and(accept(o.condition2, parent).not)
+        accept(o.expr, parent).not
       end
 
       def visit_MetaWhere_Condition(o, parent)

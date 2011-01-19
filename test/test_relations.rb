@@ -115,13 +115,21 @@ class TestRelations < Test::Unit::TestCase
       assert_equal @r.where(:name.like % 'Advanced%').all, @r.where('name LIKE ?', 'Advanced%').all
     end
 
-    should "allow |, &, and - for compound predicates" do
+    should "allow | and & for compound predicates" do
       assert_equal @r.where(:name.like % 'Advanced%' | :name.like % 'Init%').all,
                    @r.where('name LIKE ? OR name LIKE ?', 'Advanced%', 'Init%').all
       assert_equal @r.where(:name.like % 'Mission%' & :name.like % '%Data').all,
                    @r.where('name LIKE ? AND name LIKE ?', 'Mission%', '%Data').all
+    end
+
+    should "create an AND NOT on binary minus between conditions" do
       assert_equal @r.where(:name.like % 'Mission%' - :name.like % '%Data').all,
                    @r.where('name LIKE ? AND name NOT LIKE ?', 'Mission%', '%Data').all
+    end
+
+    should "create a NOT on unary minus on condition" do
+      assert_equal @r.where(-(:name.like % '%Data')).all,
+                   @r.where('name NOT LIKE ?', '%Data').all
     end
 
     should "allow nested conditions hashes to have array values" do
