@@ -26,6 +26,14 @@ module MetaWhere
       super(r)
     end
 
+    def -(other)
+      klass.where(where_values.inject(:&) - other.where_values.inject(:&))
+    end
+
+    def |(other)
+      klass.where(where_values.inject(:&) | other.where_values.inject(:&))
+    end
+
     def reset_with_metawhere
       @mw_unique_joins = @mw_association_joins = @mw_non_association_joins =
         @mw_stashed_association_joins = @mw_custom_joins = nil
