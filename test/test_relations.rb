@@ -232,7 +232,7 @@ class TestRelations < Test::Unit::TestCase
 
   context "A merged relation with a different base class" do
     setup do
-      @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech')
+      @r = Developer.where(:salary.gteq % 70000).merge Company.where(:name.matches % 'Initech')
     end
 
     should "keep the table of the second relation intact in the query" do
@@ -246,7 +246,7 @@ class TestRelations < Test::Unit::TestCase
 
   context "A merged relation with a different base class and a MetaWhere::JoinType in joins" do
     setup do
-      @r = Developer.where(:salary.gteq % 70000) & Company.where(:name.matches % 'Initech').joins(:data_types.outer)
+      @r = Developer.where(:salary.gteq % 70000).merge Company.where(:name.matches % 'Initech').joins(:data_types.outer)
     end
 
     should "merge the JoinType under the association for the merged relation" do
@@ -422,6 +422,33 @@ class TestRelations < Test::Unit::TestCase
 
     should "maintain belongs_to conditions in a polymorphic join" do
       assert_match /1=1/, Note.joins(:notable.type(Company)).to_sql
+    end
+  end
+
+  context 'Set operations' do
+    setup do
+      @s1 = Developer.where(:salary.gt => 70000)
+      @s2 = Developer.where(:salary.gt => 50000)
+    end
+
+    should 'support Union (|)' do
+      assert_equal @s1.arel.union(@s2).to_sql,
+        (@s1 | @s2).to_sql
+    end
+
+    should 'support Union All (+)' do
+      assert_equal @s1.arel.union(:all, @s2).to_sql,
+        (@s1 + @s2).to_sql
+    end
+
+    should 'support Intersect (&)' do
+      assert_equal @s1.arel.intersect(@s2).to_sql,
+        (@s1 & @s2).to_sql
+    end
+
+    should 'support Except (-)' do
+      assert_equal @s2.arel.except(@s1).to_sql,
+        (@s2 - @s1).to_sql
     end
   end
 end

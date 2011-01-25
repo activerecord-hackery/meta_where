@@ -7,6 +7,7 @@ require 'active_support/time'
 require 'meta_where'
 
 MetaWhere.operator_overload!
+MetaWhere.set_operator_overload!
 
 FIXTURES_PATH = File.join(File.dirname(__FILE__), 'fixtures')
 

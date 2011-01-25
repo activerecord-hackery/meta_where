@@ -149,6 +149,57 @@ parentheses around everything. So MetaWhere also supports a substitution-inspire
 
 (*) Formatting added for clarity. I said you could do this, not that you should. :)
 
+== SQL Set Operations
+MetaWhere allows SQL Set Operations by using | (Union), + (UnionAll), & (Intersect) and - (Except/Minus) on ActiveRecord::Relation sets.
+
+The syntax convention for each set operator is borrwed from Ruby's Array class.
+
+You must call MetaWhere.set_operator_overload! to activate. This will overwrite the existing ActiveRecord::Relation#& method. (alias for ActiveRecord::Relation#merge)
+
+Union
+
+  (Acticle.where(:created_at.gt => 2.days.ago) | Article.where(:created_at.lt => 2.weeks.ago)).to_sql
+  => SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" > '2011-02-29 05:57:54.924258'
+     UNION
+     SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" < '2011-02-15 05:57:54.924258'
+
+UnionAll
+
+  (Acticle.where(:created_at.gt => 2.days.ago) + Article.where(:created_at.lt => 2.weeks.ago)).to_sql
+  => SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" > '2011-02-29 05:57:54.924258'
+     UNION ALL
+     SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" < '2011-02-15 05:57:54.924258'
+
+Intersect
+
+  (Acticle.where(:created_at.lt => 2.days.ago) & Article.where(:created_at.gt => 2.weeks.ago)).to_sql
+  => SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" < '2011-02-29 05:57:54.924258'
+     INTERSECT
+     SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" > '2011-02-15 05:57:54.924258'
+
+Except (Minus in Oracle)
+
+  (Acticle.where(:created_at.in => 10.days.ago..1.day.ago) - Article.where(:created_at.in => 15.days.ago..7.days.ago)).to_sql
+  => SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" BETWEEN '2011-02-21 05:57:54.924258' AND '2011-02-30 05:57:54.924258'
+     EXCEPT
+     SELECT "article.*"
+     FROM "article"
+     WHERE "articles"."created_at" BETWEEN '2011-02-16 05:57:54.924258' AND '2011-02-24 05:57:54.924258'
+
 == Join type specification
 You can choose whether to use an inner join (the default) or a left outer join by tacking
 <tt>.outer</tt> or <tt>.inner</tt> to the symbols specified in your joins() call:

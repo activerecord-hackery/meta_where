@@ -25,6 +25,11 @@ module MetaWhere
   def self.operator_overload!
     require 'core_ext/symbol_operators'
   end
+
+  def self.set_operator_overload!
+    require 'meta_where/set_operators'
+    ActiveRecord::Relation.send(:include, MetaWhere::SetOperators)
+  end
 end
 
 require 'arel'
