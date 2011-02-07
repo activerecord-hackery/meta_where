@@ -19,8 +19,8 @@ begin
     gem.homepage = "http://metautonomo.us/projects/metawhere/"
     gem.authors = ["Ernie Miller"]
     gem.add_development_dependency "shoulda"
-    gem.add_dependency "activerecord", "~> 3.0.2"
-    gem.add_dependency "activesupport", "~> 3.0.2"
+    gem.add_dependency "activerecord", "~> 3.1.0"
+    gem.add_dependency "activesupport", "~> 3.1.0"
     gem.add_dependency "arel", "~> 2.0.7"
     gem.post_install_message = <<END
 
