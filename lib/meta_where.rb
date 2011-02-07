@@ -44,10 +44,8 @@ require 'core_ext/hash'
 require 'meta_where/visitors/attribute'
 require 'meta_where/visitors/predicate'
 require 'meta_where/association_reflection'
-require 'meta_where/belongs_to_polymorphic_association'
 require 'meta_where/relation'
 require 'meta_where/join_dependency'
 ActiveRecord::Relation.send(:include, MetaWhere::Relation)
 ActiveRecord::Reflection::AssociationReflection.send(:include, MetaWhere::AssociationReflection)
 ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaWhere::JoinDependency)
-ActiveRecord::Associations::BelongsToPolymorphicAssociation.send(:include, MetaWhere::BelongsToPolymorphicAssociation)

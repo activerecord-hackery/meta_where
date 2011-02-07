@@ -115,13 +115,19 @@ module MetaWhere
     # Very occasionally, we need to get a visitor for another relation, so it makes sense to factor
     # these out into a public method despite only being two lines long.
     def predicate_visitor
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-      MetaWhere::Visitors::Predicate.new(join_dependency)
+      @predicate_visitor ||= begin
+        visitor = MetaWhere::Visitors::Predicate.new
+        visitor.join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+        visitor
+      end
     end
 
     def attribute_visitor
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
-      MetaWhere::Visitors::Attribute.new(join_dependency)
+      @attribute_visitor ||= begin
+        visitor = MetaWhere::Visitors::Attribute.new
+        visitor.join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+        visitor
+      end
     end
 
     # Simulate the logic that occurs in ActiveRecord::Relation.to_a
@@ -133,7 +139,7 @@ module MetaWhere
     def debug_sql
       if eager_loading?
         including = (@eager_load_values + @includes_values).uniq
-        join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, nil)
+        join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, custom_joins)
         construct_relation_for_association_find(join_dependency).to_sql
       else
         arel.to_sql
@@ -149,32 +155,60 @@ module MetaWhere
     end
 
     def build_arel
-      arel = table
+      arel = table.from table
 
       visitor = predicate_visitor
 
-      arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
+      build_intelligent_joins(arel, @joins_values, visitor) unless @joins_values.empty?
 
       predicate_wheres = flatten_predicates(@where_values.uniq, visitor)
 
-      arel = collapse_wheres(arel, (predicate_wheres - ['']).uniq)
+      collapse_wheres(arel, (predicate_wheres - ['']).uniq)
 
-      arel = arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
+      arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
 
-      arel = arel.take(@limit_value) if @limit_value
-      arel = arel.skip(@offset_value) if @offset_value
+      arel.take(@limit_value) if @limit_value
+      arel.skip(@offset_value) if @offset_value
 
-      arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+      arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
 
-      arel = build_order(arel, attribute_visitor, @order_values) unless @order_values.empty?
+      build_order(arel, attribute_visitor, @order_values) unless @order_values.empty?
 
-      arel = build_select(arel, @select_values.uniq)
+      build_select(arel, @select_values.uniq)
 
-      arel = arel.from(@from_value) if @from_value
-      arel = arel.lock(@lock_value) if @lock_value
+      arel.from(@from_value) if @from_value
+      arel.lock(@lock_value) if @lock_value
 
       arel
     end
+
+    # def build_arel
+    #   arel = table
+    #
+    #   visitor = predicate_visitor
+    #
+    #   arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
+    #
+    #   predicate_wheres = flatten_predicates(@where_values.uniq, visitor)
+    #
+    #   arel = collapse_wheres(arel, (predicate_wheres - ['']).uniq)
+    #
+    #   arel = arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
+    #
+    #   arel = arel.take(@limit_value) if @limit_value
+    #   arel = arel.skip(@offset_value) if @offset_value
+    #
+    #   arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
+    #
+    #   arel = build_order(arel, attribute_visitor, @order_values) unless @order_values.empty?
+    #
+    #   arel = build_select(arel, @select_values.uniq)
+    #
+    #   arel = arel.from(@from_value) if @from_value
+    #   arel = arel.lock(@lock_value) if @lock_value
+    #
+    #   arel
+    # end
 
     def select(value = Proc.new)
       if MetaWhere::Function === value
@@ -190,32 +224,34 @@ module MetaWhere
       predicate.class == Arel::Nodes::Equality
     end
 
-    def build_intelligent_joins(arel, visitor)
-      joined_associations = []
+    def build_intelligent_joins(manager, joins, visitor)
+      join_list = custom_join_ast(manager, string_joins)
 
-      visitor.join_dependency.graft(*stashed_association_joins)
+      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(
+        @klass,
+        association_joins,
+        join_list
+      )
+
+      join_nodes.each do |join|
+        join_dependency.table_aliases[join.left.name.downcase] = 1
+      end
+
+      join_dependency.graft(*stashed_association_joins)
 
       @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
-      to_join = []
-
-      visitor.join_dependency.join_associations.each do |association|
-        if (association_relation = association.relation).is_a?(Array)
-          to_join << [association_relation.first, association.join_type, association.association_join.first]
-          to_join << [association_relation.last, association.join_type, association.association_join.last]
-        else
-          to_join << [association_relation, association.join_type, association.association_join]
-        end
+      # FIXME: refactor this to build an AST
+      join_dependency.join_associations.each do |association|
+        association.join_to(manager)
       end
 
-      to_join.each do |tj|
-        unless joined_associations.detect {|ja| ja[0] == tj[0] && ja[1] == tj[1] && ja[2] == tj[2] }
-          joined_associations << tj
-          arel = arel.join(tj[0], tj[1]).on(*tj[2])
-        end
-      end
+      manager.join_sources.concat join_nodes.uniq
+      manager.join_sources.concat join_list
 
-      arel = arel.join(custom_joins)
+      visitor.join_dependency = join_dependency
+
+      manager
     end
 
     def build_order(arel, visitor, orders)
@@ -276,6 +312,14 @@ module MetaWhere
       }
     end
 
+    def string_joins
+      @mw_string_joins ||= unique_joins.select { |j| j.is_a? String }
+    end
+
+    def join_nodes
+      @mw_join_nodes ||= unique_joins.select { |j| j.is_a? Arel::Nodes::Join }
+    end
+
     def stashed_association_joins
       @mw_stashed_association_joins ||= unique_joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
     end
@@ -285,7 +329,7 @@ module MetaWhere
     end
 
     def custom_joins
-      @mw_custom_joins ||= custom_join_sql(*non_association_joins)
+      @mw_custom_joins ||= custom_join_ast(@klass.arel_table, non_association_joins)
     end
   end
 end

@@ -55,7 +55,7 @@ module MetaWhere
 
         if predicates.size > 1
           first = predicates.shift
-          Arel::Nodes::Grouping.new(predicates.inject(first) {|memo, expr| Arel::Nodes::And.new(memo, expr)})
+          Arel::Nodes::Grouping.new(predicates.inject(first) {|memo, expr| Arel::Nodes::And.new([memo, expr])})
         else
           predicates.first
         end
@@ -123,11 +123,11 @@ module MetaWhere
           groups.each do |klass, values|
             condition = if reflection.options[:polymorphic]
               {
-                (reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id),
-                reflection.options[:foreign_type].to_sym => klass.name
+                (reflection.options[:foreign_key] || reflection.foreign_key).to_sym => values.size == 1 ? values.first.id : values.map(&:id),
+                reflection.foreign_type.to_sym => klass.name
               }
             else
-              {(reflection.options[:foreign_key] || reflection.primary_key_name).to_sym => values.size == 1 ? values.first.id : values.map(&:id)}
+              {(reflection.options[:foreign_key] || reflection.foreign_key).to_sym => values.size == 1 ? values.first.id : values.map(&:id)}
             end
             conditions = conditions ? conditions | condition : condition
           end

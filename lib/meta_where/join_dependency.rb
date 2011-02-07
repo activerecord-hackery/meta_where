@@ -12,8 +12,8 @@ module MetaWhere
     class ConfigurationError < StandardError; end
     class AssociationNotFoundError < StandardError; end
 
-    def build_with_metawhere(associations, parent = nil, join_type = Arel::Nodes::InnerJoin)
-      parent ||= @joins.last
+    def build_with_metawhere(associations, parent = nil, join_type = Arel::InnerJoin)
+      parent ||= join_parts.last
       if MetaWhere::JoinType === associations
         klass = associations.klass
         join_type = associations.join_type
@@ -33,7 +33,8 @@ module MetaWhere
             association = build_join_association(reflection, parent)
           end
           association.join_type = join_type
-          @joins << association
+          @join_parts << association
+          cache_joined_association(association)
         end
         association
       else
@@ -50,7 +51,13 @@ module MetaWhere
           (j.parent == parent)
         end
       else
-        find_join_association_without_metawhere(name_or_reflection, parent)
+        case name_or_reflection
+        when Symbol, String
+          join_associations.detect {|j| (j.reflection.name == name_or_reflection.to_s.intern) && (j.parent == parent)}
+        else
+          join_associations.detect {|j| (j.reflection == name_or_reflection) && (j.parent == parent)}
+        end
+        #find_join_association_without_metawhere(name_or_reflection, parent)
       end
     end
   end
@@ -61,16 +68,20 @@ module MetaWhere
       reflection.check_validity!
       @active_record = polymorphic_class
       @cached_record = {}
-      @join_dependency    = join_dependency
-      @parent             = parent || join_dependency.join_base
-      @reflection         = reflection.clone
+      @column_names_with_alias = nil
+      @reflection      = reflection.clone
       @reflection.instance_variable_set :"@klass", polymorphic_class
-      @aliased_prefix     = "t#{ join_dependency.joins.size }"
-      @parent_table_name  = @parent.active_record.table_name
-      @aliased_table_name = aliased_table_name_for(table_name)
-      @join               = nil
-      @join_type          = Arel::Nodes::InnerJoin
+      @join_dependency = join_dependency
+      @parent          = parent
+      @join_type       = Arel::InnerJoin
+      @aliased_prefix  = "t#{ join_dependency.join_parts.size }"
+
+      allocate_aliases
+      @table = Arel::Table.new(
+        table_name, :as => aliased_table_name, :engine => arel_engine
+      )
     end
+
 
     def ==(other)
       other.class == self.class &&
@@ -79,22 +90,16 @@ module MetaWhere
       other.parent == parent
     end
 
-    def association_join
-      return @join if @join
-
-      aliased_table = Arel::Table.new(table_name, :as => @aliased_table_name, :engine => arel_engine)
-      parent_table = Arel::Table.new(parent.table_name, :as => parent.aliased_table_name, :engine => arel_engine)
-
-      @join = [
-        aliased_table[options[:primary_key] || reflection.klass.primary_key].eq(parent_table[options[:foreign_key] || reflection.primary_key_name]),
-        parent_table[options[:foreign_type]].eq(active_record.name)
-      ]
-
-      if options[:conditions]
-        @join << interpolate_sql(sanitize_sql(options[:conditions], aliased_table_name))
-      end
-
-      @join
+    def join_belongs_to_to(relation)
+      foreign_key = options[:foreign_key] || reflection.foreign_key
+      foreign_type = options[:foreign_type] || reflection.foreign_type
+      primary_key = options[:primary_key] || reflection.klass.primary_key
+      join_target_table(
+        relation,
+        target_table[primary_key].eq(parent_table[foreign_key]).
+        and(parent_table[foreign_type].eq(active_record.name))
+      )
     end
+
   end
 end

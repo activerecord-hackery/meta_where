@@ -5,14 +5,19 @@ module MetaWhere
     class Visitor
       include MetaWhere::Utility
 
-      attr_reader :join_dependency, :tables
+      attr_reader :tables
+      attr_reader :join_dependency
 
-      def initialize(join_dependency)
-        @join_dependency = join_dependency
-        jb = join_dependency.join_base
+      def initialize
+        @tables = Hash.new {|hash, key| hash[key] = get_table(key)}
+      end
+
+      def join_dependency=(jd)
+        @join_dependency = jd
+        jb = jd.join_base
         @engine = jb.arel_engine
         @default_table = Arel::Table.new(jb.table_name, :as => jb.aliased_table_name, :engine => @engine)
-        @tables = Hash.new {|hash, key| hash[key] = get_table(key)}
+        self
       end
 
       def get_table(parent_or_table_name = nil)
