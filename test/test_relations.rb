@@ -115,6 +115,14 @@ class TestRelations < Test::Unit::TestCase
       assert_equal @r.where(:name.like % 'Advanced%').all, @r.where('name LIKE ?', 'Advanced%').all
     end
 
+    should "handle *_any predicates by creating or conditions" do
+      assert_match %r{ OR }, @r.where(:name.matches_any => ['%e%', '%a%']).to_sql
+    end
+
+    should "handle *_all predicates by creating AND conditions" do
+      assert_match %r{ AND }, @r.where(:name.matches_all => ['%e%', '%a%']).to_sql
+    end
+
     should "allow | and & for compound predicates" do
       assert_equal @r.where(:name.like % 'Advanced%' | :name.like % 'Init%').all,
                    @r.where('name LIKE ? OR name LIKE ?', 'Advanced%', 'Init%').all

@@ -257,12 +257,7 @@ module MetaWhere
 
     def flatten_predicates(predicates, visitor)
       predicates.map {|p|
-        predicate = visitor.can_accept?(p) ? visitor.accept(p) : p
-        if predicate.is_a?(Arel::Nodes::Grouping) && predicate.expr.is_a?(Arel::Nodes::And)
-          flatten_predicates([predicate.expr.left, predicate.expr.right], visitor)
-        else
-          predicate
-        end
+        visitor.can_accept?(p) ? visitor.accept(p) : p
       }.flatten.uniq
     end
 
