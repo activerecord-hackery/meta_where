@@ -216,6 +216,15 @@ class TestRelations < Test::Unit::TestCase
         assert_match /LEFT OUTER JOIN "developers"/, @r.debug_sql
       end
     end
+    context "with eager-loaded companies" do
+      setup do
+        @r = Developer.includes(:company).order(:companies => :name.asc)
+      end
+
+      should "generate debug SQL with the joins in place" do
+        assert @r.all.first.instance_variables.include?(:@company)
+      end
+    end
   end
 
   context "A relation from an STI class" do
