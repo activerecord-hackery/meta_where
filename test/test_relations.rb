@@ -216,15 +216,6 @@ class TestRelations < Test::Unit::TestCase
         assert_match /LEFT OUTER JOIN "developers"/, @r.debug_sql
       end
     end
-    context "with eager-loaded companies" do
-      setup do
-        @r = Developer.includes(:company).order(:companies => :name.asc)
-      end
-
-      should "generate debug SQL with the joins in place" do
-        assert @r.all.first.instance_variables.include?(:@company)
-      end
-    end
   end
 
   context "A relation from an STI class" do
@@ -354,9 +345,29 @@ class TestRelations < Test::Unit::TestCase
                    @r.where(:name.matches => '%blah%').where(:name.matches => '%blah2%').to_sql
     end
 
-    should "erge multiple conditions on the same column but different predicate with ANDs" do
+    should "merge multiple conditions on the same column but different predicate with ANDs" do
       assert_match /"developers"."name" = 'blah' AND "developers"."name" LIKE '%blah2%'/,
                    @r.where(:name => 'blah').where(:name.matches => '%blah2%').to_sql
+    end
+
+    context "with eager-loaded companies" do
+      setup do
+        @r = @r.includes(:company)
+      end
+
+      should "eager load companies" do
+        assert_equal true, @r.all.first.instance_variables.include?(:@company)
+      end
+    end
+
+    context "with eager-loaded companies and an order value" do
+      setup do
+        @r = @r.includes(:company).order(:companies => :name.asc)
+      end
+
+      should "eager load companies" do
+        assert_equal true, @r.all.first.instance_variables.include?(:@company)
+      end
     end
   end
 

@@ -34,6 +34,7 @@ module MetaWhere
           end
           association.join_type = join_type
           @joins << association
+          cache_joined_association(association)
         end
         association
       else

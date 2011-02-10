@@ -1,3 +1,6 @@
+Changes since 1.0.2 (2011-02-09):
+  * Fix eager loading with order values supplied
+
 Changes since 1.0.1 (2011-01-18):
   * Fix *_all behavior to not result in ORs when collapse_wheres is called
   * Add support for NOT operator (-) on hashes, conditions, and compound
