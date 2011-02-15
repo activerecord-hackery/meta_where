@@ -356,7 +356,7 @@ class TestRelations < Test::Unit::TestCase
       end
 
       should "eager load companies" do
-        assert_equal true, @r.all.first.instance_variables.include?(:@company)
+        assert_equal true, @r.all.first.company.loaded?
       end
     end
 
@@ -366,7 +366,7 @@ class TestRelations < Test::Unit::TestCase
       end
 
       should "eager load companies" do
-        assert_equal true, @r.all.first.instance_variables.include?(:@company)
+        assert_equal true, @r.all.first.company.loaded?
       end
     end
   end
