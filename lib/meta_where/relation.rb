@@ -257,35 +257,35 @@ module MetaWhere
         visitor.can_accept?(p) ? visitor.accept(p) : p
       }.flatten.uniq
     end
-
-    def unique_joins
-      @mw_unique_joins ||= @joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
-    end
-
-    def association_joins
-      @mw_association_joins ||= unique_joins.select{|j|
-        [Hash, Array, Symbol, MetaWhere::JoinType].include?(j.class) && !array_of_strings?(j)
-      }
-    end
-
-    def string_joins
-      @mw_string_joins ||= unique_joins.select { |j| j.is_a? String }
-    end
-
-    def join_nodes
-      @mw_join_nodes ||= unique_joins.select { |j| j.is_a? Arel::Nodes::Join }
-    end
-
-    def stashed_association_joins
-      @mw_stashed_association_joins ||= unique_joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
-    end
-
-    def non_association_joins
-      @mw_non_association_joins ||= (unique_joins - association_joins - stashed_association_joins).reject {|j| j.blank?}
-    end
-
-    def custom_joins
-      @mw_custom_joins ||= custom_join_ast(@klass.arel_table, non_association_joins)
-    end
+    #
+    # def unique_joins
+    #   @mw_unique_joins ||= @joins_values.map {|j| j.respond_to?(:strip) ? j.strip : j}.uniq
+    # end
+    #
+    # def association_joins
+    #   @mw_association_joins ||= unique_joins.select{|j|
+    #     [Hash, Array, Symbol, MetaWhere::JoinType].include?(j.class) && !array_of_strings?(j)
+    #   }
+    # end
+    #
+    # def string_joins
+    #   @mw_string_joins ||= unique_joins.select { |j| j.is_a? String }
+    # end
+    #
+    # def join_nodes
+    #   @mw_join_nodes ||= unique_joins.select { |j| j.is_a? Arel::Nodes::Join }
+    # end
+    #
+    # def stashed_association_joins
+    #   @mw_stashed_association_joins ||= unique_joins.grep(ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation)
+    # end
+    #
+    # def non_association_joins
+    #   @mw_non_association_joins ||= (unique_joins - association_joins - stashed_association_joins).reject {|j| j.blank?}
+    # end
+    #
+    # def custom_joins
+    #   @mw_custom_joins ||= custom_join_ast(@klass.arel_table, non_association_joins)
+    # end
   end
 end
