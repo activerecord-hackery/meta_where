@@ -115,6 +115,14 @@ class TestRelations < Test::Unit::TestCase
       assert_equal @r.where(:name.like % 'Advanced%').all, @r.where('name LIKE ?', 'Advanced%').all
     end
 
+    should "handle *_any predicates by creating or conditions" do
+      assert_match %r{ OR }, @r.where(:name.matches_any => ['%e%', '%a%']).to_sql
+    end
+
+    should "handle *_all predicates by creating AND conditions" do
+      assert_match %r{ AND }, @r.where(:name.matches_all => ['%e%', '%a%']).to_sql
+    end
+
     should "allow | and & for compound predicates" do
       assert_equal @r.where(:name.like % 'Advanced%' | :name.like % 'Init%').all,
                    @r.where('name LIKE ? OR name LIKE ?', 'Advanced%', 'Init%').all
@@ -337,9 +345,29 @@ class TestRelations < Test::Unit::TestCase
                    @r.where(:name.matches => '%blah%').where(:name.matches => '%blah2%').to_sql
     end
 
-    should "erge multiple conditions on the same column but different predicate with ANDs" do
+    should "merge multiple conditions on the same column but different predicate with ANDs" do
       assert_match /"developers"."name" = 'blah' AND "developers"."name" LIKE '%blah2%'/,
                    @r.where(:name => 'blah').where(:name.matches => '%blah2%').to_sql
+    end
+
+    context "with eager-loaded companies" do
+      setup do
+        @r = @r.includes(:company)
+      end
+
+      should "eager load companies" do
+        assert_equal true, @r.all.first.company.loaded?
+      end
+    end
+
+    context "with eager-loaded companies and an order value" do
+      setup do
+        @r = @r.includes(:company).order(:companies => :name.asc)
+      end
+
+      should "eager load companies" do
+        assert_equal true, @r.all.first.company.loaded?
+      end
     end
   end
 
