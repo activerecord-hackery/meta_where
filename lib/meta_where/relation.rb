@@ -106,7 +106,7 @@ module MetaWhere
     def debug_sql
       if eager_loading?
         including = (@eager_load_values + @includes_values).uniq
-        join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, including, custom_joins)
+        join_dependency = JoinDependency.new(@klass, including, [])
         construct_relation_for_association_find(join_dependency).to_sql
       else
         arel.to_sql
@@ -163,13 +163,12 @@ module MetaWhere
       predicate.class == Arel::Nodes::Equality
     end
 
-
     def build_join_dependency(manager, joins)
       buckets = joins.group_by do |join|
         case join
         when String
           'string_join'
-        when Hash, Symbol, Array, MetaWhere::Nodes::Join
+        when Hash, Symbol, Array, MetaWhere::JoinType
           'association_join'
         when JoinAssociation
           'stashed_join'
