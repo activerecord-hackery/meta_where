@@ -92,7 +92,7 @@ module MetaWhere
       ]
 
       if options[:conditions]
-        @join << interpolate_sql(sanitize_sql(options[:conditions], aliased_table_name))
+        @join << process_conditions(options[:conditions], aliased_table_name)
       end
 
       @join

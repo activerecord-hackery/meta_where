@@ -1,4 +1,6 @@
-require 'rubygems'
+require "rubygems"
+require "bundler"
+Bundler.setup
 require 'test/unit'
 require 'shoulda'
 require 'active_record'

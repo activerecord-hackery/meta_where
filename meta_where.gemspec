@@ -37,6 +37,8 @@ you're feeling especially appreciative. It'd help me justify this
 
   s.add_dependency 'activerecord', '~> 3.0.0'
   s.add_dependency 'activesupport', '~> 3.0.0'
+  s.add_dependency 'arel', '~> 2.0.7'
+  s.add_development_dependency 'shoulda'
   s.add_development_dependency 'sqlite3', '~> 1.3.3'
 
   s.files         = `git ls-files`.split("\n")
