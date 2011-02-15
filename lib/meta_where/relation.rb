@@ -1,6 +1,12 @@
 module MetaWhere
   module Relation
 
+    JoinAssociation = ::ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+    JoinDependency = ::ActiveRecord::Associations::ClassMethods::JoinDependency
+
+    attr_writer :join_dependency
+    private :join_dependency=
+
     def self.included(base)
       base.class_eval do
         alias_method_chain :reset, :metawhere
@@ -11,6 +17,10 @@ module MetaWhere
       base.instance_eval do
         alias_method :&, :merge
       end
+    end
+
+    def join_dependency
+      @join_dependency ||= (build_join_dependency(table.from(table), @joins_values) && @join_dependency)
     end
 
     def merge(r, association_name = nil)
@@ -65,49 +75,6 @@ module MetaWhere
       end
     end
 
-    def build_custom_joins(joins = [], arel = nil)
-      arel ||= table
-      joins.each do |join|
-        next if join.blank?
-
-        @implicit_readonly = true
-
-        case join
-        when ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
-          arel = arel.join(join.relation, Arel::Nodes::OuterJoin).on(*join.on)
-        when Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel = arel.join(join_string)
-          end
-        else
-          arel = arel.join(join)
-        end
-      end
-
-      arel
-    end
-
-    def custom_join_sql(*joins)
-      arel = table
-      joins.each do |join|
-        next if join.blank?
-
-        @implicit_readonly = true
-
-        case join
-        when Hash, Array, Symbol
-          if array_of_strings?(join)
-            join_string = join.join(' ')
-            arel = arel.join(join_string)
-          end
-        else
-          arel = arel.join(join)
-        end
-      end
-      arel.joins(arel)
-    end unless defined?(:custom_join_sql)
-
     def predicates_without_conflicting_equality
       remove_conflicting_equality_predicates(flatten_predicates(@where_values, predicate_visitor))
     end
@@ -117,7 +84,7 @@ module MetaWhere
     def predicate_visitor
       @predicate_visitor ||= begin
         visitor = MetaWhere::Visitors::Predicate.new
-        visitor.join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+        visitor.join_dependency = join_dependency
         visitor
       end
     end
@@ -125,7 +92,7 @@ module MetaWhere
     def attribute_visitor
       @attribute_visitor ||= begin
         visitor = MetaWhere::Visitors::Attribute.new
-        visitor.join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(@klass, association_joins, custom_joins)
+        visitor.join_dependency = join_dependency
         visitor
       end
     end
@@ -157,9 +124,9 @@ module MetaWhere
     def build_arel
       arel = table.from table
 
-      visitor = predicate_visitor
+      build_join_dependency(arel, @joins_values) unless @joins_values.empty?
 
-      build_intelligent_joins(arel, @joins_values, visitor) unless @joins_values.empty?
+      visitor = predicate_visitor
 
       predicate_wheres = flatten_predicates(@where_values.uniq, visitor)
 
@@ -182,34 +149,6 @@ module MetaWhere
       arel
     end
 
-    # def build_arel
-    #   arel = table
-    #
-    #   visitor = predicate_visitor
-    #
-    #   arel = build_intelligent_joins(arel, visitor) if @joins_values.present?
-    #
-    #   predicate_wheres = flatten_predicates(@where_values.uniq, visitor)
-    #
-    #   arel = collapse_wheres(arel, (predicate_wheres - ['']).uniq)
-    #
-    #   arel = arel.having(*flatten_predicates(@having_values, visitor).reject {|h| h.blank?}) unless @having_values.empty?
-    #
-    #   arel = arel.take(@limit_value) if @limit_value
-    #   arel = arel.skip(@offset_value) if @offset_value
-    #
-    #   arel = arel.group(*@group_values.uniq.reject{|g| g.blank?}) unless @group_values.empty?
-    #
-    #   arel = build_order(arel, attribute_visitor, @order_values) unless @order_values.empty?
-    #
-    #   arel = build_select(arel, @select_values.uniq)
-    #
-    #   arel = arel.from(@from_value) if @from_value
-    #   arel = arel.lock(@lock_value) if @lock_value
-    #
-    #   arel
-    # end
-
     def select(value = Proc.new)
       if MetaWhere::Function === value
         value.table = self.arel_table
@@ -224,10 +163,34 @@ module MetaWhere
       predicate.class == Arel::Nodes::Equality
     end
 
-    def build_intelligent_joins(manager, joins, visitor)
+
+    def build_join_dependency(manager, joins)
+      buckets = joins.group_by do |join|
+        case join
+        when String
+          'string_join'
+        when Hash, Symbol, Array, MetaWhere::Nodes::Join
+          'association_join'
+        when JoinAssociation
+          'stashed_join'
+        when Arel::Nodes::Join
+          'join_node'
+        else
+          raise 'unknown class: %s' % join.class.name
+        end
+      end
+
+      association_joins         = buckets['association_join'] || []
+      stashed_association_joins = buckets['stashed_join'] || []
+      join_nodes                = buckets['join_node'] || []
+      string_joins              = (buckets['string_join'] || []).map { |x|
+        x.strip
+      }.uniq
+
       join_list = custom_join_ast(manager, string_joins)
 
-      join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(
+      # All of this duplication just to add
+      self.join_dependency = JoinDependency.new(
         @klass,
         association_joins,
         join_list
@@ -248,8 +211,6 @@ module MetaWhere
 
       manager.join_sources.concat join_nodes.uniq
       manager.join_sources.concat join_list
-
-      visitor.join_dependency = join_dependency
 
       manager
     end
