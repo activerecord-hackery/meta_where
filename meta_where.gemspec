@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Ernie Miller"]
   s.email       = ["ernie@metautonomo.us"]
   s.homepage    = "http://metautonomo.us/projects/metawhere"
-  s.summary     = %q{TODO: Write a gem summary}
+  s.summary     = %q{ActiveRecord 3 query syntax on steroids.}
   s.description = %q{
       MetaWhere offers the ability to call any Arel predicate methods
       (with a few convenient aliases) on your Model's attributes instead
@@ -35,11 +35,8 @@ you're feeling especially appreciative. It'd help me justify this
 
   s.rubyforge_project = "meta_where"
 
-  s.add_dependency 'activerecord', '~> 3.1.0.alpha'
-  s.add_dependency 'activesupport', '~> 3.1.0.alpha'
-  s.add_development_dependency 'rspec', '~> 2.5.0'
-  s.add_development_dependency 'machinist', '~> 1.0.6'
-  s.add_development_dependency 'faker', '~> 0.9.5'
+  s.add_dependency 'activerecord', '~> 3.0.0'
+  s.add_dependency 'activesupport', '~> 3.0.0'
   s.add_development_dependency 'sqlite3', '~> 1.3.3'
 
   s.files         = `git ls-files`.split("\n")
