@@ -1,14 +1,4 @@
 module MetaWhere
-  METHOD_ALIASES = {
-    'ne' => :not_eq,
-    'like' => :matches,
-    'not_matches' => :does_not_match,
-    'nlike' => :does_not_match,
-    'lte' => :lteq,
-    'gte' => :gteq,
-    'nin' => :not_in
-  }
-
   PREDICATES = [
     :eq, :eq_any, :eq_all,
     :not_eq, :not_eq_any, :not_eq_all,
@@ -22,30 +12,15 @@ module MetaWhere
     :not_in, :not_in_any, :not_in_all
   ]
 
-  def self.operator_overload!
-    require 'core_ext/symbol_operators'
+  def self.configure
+    yield self
+  end
+
+  def self.load_core_extensions!
+    require 'core_ext'
   end
 end
 
-require 'arel'
-require 'active_record'
-require 'active_support'
-
-# TODO: Trim this down, as the individual files should be
-# handling their requires.
-require 'meta_where/column'
-require 'meta_where/condition'
-require 'meta_where/not'
-require 'meta_where/compound'
-require 'meta_where/function'
-require 'meta_where/join_type'
-require 'core_ext/symbol'
-require 'core_ext/hash'
-require 'meta_where/visitors/attribute'
-require 'meta_where/visitors/predicate'
-require 'meta_where/association_reflection'
-require 'meta_where/relation'
-require 'meta_where/join_dependency'
-ActiveRecord::Relation.send(:include, MetaWhere::Relation)
-ActiveRecord::Reflection::AssociationReflection.send(:include, MetaWhere::AssociationReflection)
-ActiveRecord::Associations::ClassMethods::JoinDependency.send(:include, MetaWhere::JoinDependency)
+require 'meta_where/builders'
+require 'meta_where/visitors'
+require 'meta_where/adapters/active_record'

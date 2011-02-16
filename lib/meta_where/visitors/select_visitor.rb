@@ -1,0 +1,52 @@
+require 'meta_where/visitors/base'
+require 'meta_where/contexts/join_dependency_context'
+
+module MetaWhere
+  module Visitors
+    class SelectVisitor < Base
+
+      def visit_Hash(o, parent)
+        k = k.symbol if Nodes::Stub === k
+        o.map do |k, v|
+          if Hash === v
+            accept(v, find(k, parent) || k)
+          elsif v.is_a?(Array) && !v.empty? && v.all? {|val| can_accept?(val)}
+            new_parent = find(k, parent)
+            v.map {|val| accept(val, new_parent || k)}
+          else
+            can_accept?(v) ? accept(v, find(k, parent) || k) : v
+          end
+        end.flatten
+      end
+
+      def visit_Array(o, parent)
+        o.map { |v| can_accept?(v) ? accept(v, parent) : v }.flatten
+      end
+
+      def visit_Symbol(o, parent)
+        contextualize(parent)[o]
+      end
+
+      def visit_MetaWhere_Nodes_Stub(o, parent)
+        contextualize(parent)[o.symbol]
+      end
+
+      def visit_MetaWhere_Nodes_Function(o, parent)
+        args = o.args.map do |arg|
+          case arg
+          when Nodes::Function
+            accept(arg, parent)
+          when Symbol
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg])
+          when Nodes::Stub
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg.symbol])
+          else
+            arg
+          end
+        end
+        Arel::Nodes::NamedFunction.new(o.name, args, o.alias)
+      end
+
+    end
+  end
+end

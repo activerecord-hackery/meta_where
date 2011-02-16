@@ -1,0 +1,8 @@
+require 'meta_where/nodes/stub'
+require 'meta_where/nodes/predicate'
+require 'meta_where/nodes/function'
+require 'meta_where/nodes/order'
+require 'meta_where/nodes/and'
+require 'meta_where/nodes/or'
+require 'meta_where/nodes/not'
+require 'meta_where/nodes/join'

@@ -1,2 +1,0 @@
-class TimeAndMaterialsProject < Project
-end
