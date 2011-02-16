@@ -9,15 +9,14 @@ module MetaWhere
       end
 
       def eql?(other)
-        self.symbol == other ||
-          (self.class == other.class &&
-           self.symbol == other.symbol)
+        self.class == other.class &&
+        self.symbol == other.symbol
       end
 
       alias :== :eql?
 
       def hash
-        symbol.hash # Not that it matters...
+        symbol.hash
       end
 
       def to_sym
@@ -78,25 +77,29 @@ module MetaWhere
       end
 
       def asc
-        MetaWhere::Nodes::Order.new self.symbol, 1
+        Order.new self.symbol, 1
       end
 
       def desc
-        MetaWhere::Nodes::Order.new self.symbol, -1
+        Order.new self.symbol, -1
       end
 
       def func(*args)
-        MetaWhere::Nodes::Function.new(self.symbol, args)
+        Function.new(self.symbol, args)
       end
 
       alias :[] :func
 
       def inner
-        MetaWhere::Nodes::Join.new(self.symbol, Arel::InnerJoin)
+        Join.new(self.symbol, Arel::InnerJoin)
       end
 
       def outer
-        MetaWhere::Nodes::Join.new(self.symbol, Arel::OuterJoin)
+        Join.new(self.symbol, Arel::OuterJoin)
+      end
+
+      def of_class(klass)
+        Join.new(self.symbol, Arel::InnerJoin, klass)
       end
 
     end

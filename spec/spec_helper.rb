@@ -11,8 +11,8 @@ Sham.define do
   title    { Faker::Lorem.sentence }
   body     { Faker::Lorem.paragraph }
   salary   {|index| 30000 + (index * 1000)}
-  tag_name { Faker::Lorem.words(3) }
-  note     { Faker::Lorem.words(7) }
+  tag_name { Faker::Lorem.words(3).join(' ') }
+  note     { Faker::Lorem.words(7).join(' ') }
 end
 
 RSpec.configure do |config|

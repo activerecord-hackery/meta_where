@@ -30,4 +30,8 @@ class Symbol
     MetaWhere::Nodes::Join.new(self, Arel::OuterJoin)
   end
 
+  def of_class(klass)
+    MetaWhere::Nodes::Join.new(self, Arel::InnerJoin, klass)
+  end
+
 end

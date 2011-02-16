@@ -247,6 +247,11 @@ module MetaWhere
             block.to_sql.should eq standard.to_sql
           end
 
+          it 'joins polymorphic belongs_to associations' do
+            relation = Note.joins{notable(Article)}
+            relation.to_sql.should match /"notes"."notable_type" = 'Article'/
+          end
+
           it "only joins once, even if two join types are used" do
             relation = Person.joins(:articles.inner, :articles.outer)
             relation.to_sql.scan("JOIN").size.should eq 1

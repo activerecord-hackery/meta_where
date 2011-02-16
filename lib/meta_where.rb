@@ -21,6 +21,6 @@ module MetaWhere
   end
 end
 
-require 'meta_where/builders'
+require 'meta_where/dsl'
 require 'meta_where/visitors'
 require 'meta_where/adapters/active_record'

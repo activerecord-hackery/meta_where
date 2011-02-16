@@ -1,4 +1,5 @@
 require 'meta_where/adapters/active_record/relation'
+require 'meta_where/adapters/active_record/polymorphic_join_association'
 require 'meta_where/adapters/active_record/join_dependency'
 
 ActiveRecord::Relation.send :include, MetaWhere::Adapters::ActiveRecord::Relation

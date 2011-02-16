@@ -117,7 +117,7 @@ module MetaWhere
               to_a.select {|*block_args| value.call(*block_args)}
             else
               relation = clone
-              relation.select_values += Array.wrap(Builders::StubBuilder.build &value)
+              relation.select_values += Array.wrap(DSL.evaluate &value)
               relation
             end
           else
@@ -127,7 +127,7 @@ module MetaWhere
 
         def where(opts = Proc.new, *rest)
           if block_given? && Proc === opts
-            super(Builders::StubBuilder.build &opts)
+            super(DSL.evaluate &opts)
           else
             super
           end
@@ -153,7 +153,7 @@ module MetaWhere
 
         def order(*args)
           if block_given? && args.empty?
-            super(Builders::StubBuilder.build &Proc.new)
+            super(DSL.evaluate &Proc.new)
           else
             super
           end
@@ -161,7 +161,7 @@ module MetaWhere
 
         def joins(*args)
           if block_given? && args.empty?
-            super(Builders::StubBuilder.build &Proc.new)
+            super(DSL.evaluate &Proc.new)
           else
             super
           end
@@ -169,7 +169,7 @@ module MetaWhere
 
         def having(*args)
           if block_given? && args.empty?
-            super(Builders::StubBuilder.build &Proc.new)
+            super(DSL.evaluate &Proc.new)
           else
             super
           end

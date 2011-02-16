@@ -20,9 +20,15 @@ module MetaWhere
       def find(object, parent = base)
         if JoinPart === parent
           object = object.to_sym if String === object
-          if Symbol === object
+          case object
+          when Symbol
             @join_dependency.join_associations.detect { |j|
               j.reflection.name == object && j.parent == parent
+            }
+          when Nodes::Join
+            @join_dependency.join_associations.detect { |j|
+              j.reflection.name == object.name && j.parent == parent &&
+              (object.polymorphic? ? j.reflection.klass == object.klass : true)
             }
           else
             @join_dependency.join_associations.detect { |j|
