@@ -65,7 +65,7 @@ module MetaWhere
             case join
             when String
               'string_join'
-            when Hash, Symbol, Array, MetaWhere::Nodes::Join
+            when Hash, Symbol, Array, Nodes::Stub, Nodes::Join
               'association_join'
             when JoinAssociation
               'stashed_join'
@@ -160,6 +160,14 @@ module MetaWhere
         end
 
         def joins(*args)
+          if block_given? && args.empty?
+            super(Builders::StubBuilder.build &Proc.new)
+          else
+            super
+          end
+        end
+
+        def having(*args)
           if block_given? && args.empty?
             super(Builders::StubBuilder.build &Proc.new)
           else

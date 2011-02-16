@@ -241,9 +241,30 @@ module MetaWhere
             block.to_sql.should eq standard.to_sql
           end
 
+          it 'accepts multiple top-level associations with a block' do
+            standard = Person.joins(:children, :articles, :comments)
+            block = Person.joins{[children, articles, comments]}
+            block.to_sql.should eq standard.to_sql
+          end
+
           it "only joins once, even if two join types are used" do
             relation = Person.joins(:articles.inner, :articles.outer)
             relation.to_sql.scan("JOIN").size.should eq 1
+          end
+
+        end
+
+        describe '#having' do
+
+          it 'builds options with a block' do
+            standard = Person.having(:name => 'bob')
+            block = Person.having{{name => 'bob'}}
+            block.to_sql.should eq standard.to_sql
+          end
+
+          it 'allows complex conditions on aggregate columns' do
+            relation = Person.group(:parent_id).having{salary >> max[salary]}
+            relation.first.name.should eq 'Gladyce Kulas'
           end
 
         end

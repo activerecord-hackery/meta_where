@@ -49,10 +49,11 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Nodes_Predicate(o, parent)
+        value = (Nodes::Function === o.value ? accept(o.value, parent) : o.value)
         if Nodes::Function === o.expr
-          accept(o.expr, parent).send(o.method_name, o.value)
+          accept(o.expr, parent).send(o.method_name, value)
         else
-          contextualize(parent)[o.expr].send(o.method_name, o.value)
+          contextualize(parent)[o.expr].send(o.method_name, value)
         end
       end
 
