@@ -178,15 +178,10 @@ module MetaWhere
         def collapse_wheres(arel, wheres)
           binaries = wheres.grep(Arel::Nodes::Binary)
 
-          groups = binaries.group_by do |binary|
-            [binary.class, binary.left]
-          end
+          groups = binaries.group_by {|b| b.class}
 
           groups.each do |_, bins|
-            test = bins.inject(bins.shift) do |memo, expr|
-              memo.or(expr)
-            end
-            arel.where(test)
+            arel.where(Arel::Nodes::And.new(bins))
           end
 
           (wheres - binaries).each do |where|

@@ -124,11 +124,11 @@ module MetaWhere
             arel.to_sql.should match /"parents_people_2"."name" = 'bob'/
           end
 
-          it 'combines multiple conditions of the same type against the same column with OR' do
+          it 'combines multiple conditions of the same type against the same column with AND' do
             relation = Person.where(:name.matches => '%bob%')
             relation = relation.where(:name.matches => '%joe%')
             arel = relation.build_arel
-            arel.to_sql.should match /"people"."name" LIKE '%bob%' OR "people"."name" LIKE '%joe%'/
+            arel.to_sql.should match /"people"."name" LIKE '%bob%' AND "people"."name" LIKE '%joe%'/
           end
 
           it 'maps havings inside a hash to their appropriate association table' do
