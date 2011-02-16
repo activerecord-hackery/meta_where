@@ -163,7 +163,7 @@ module MetaWhere
           if block_given? && args.empty?
             super(Builders::StubBuilder.build &Proc.new)
           else
-            super(*args)
+            super
           end
         end
 
@@ -185,20 +185,6 @@ module MetaWhere
             where = Arel.sql(where) if String === where
             arel.where(Arel::Nodes::Grouping.new(where))
           end
-        end
-
-        ### ZOMG ALIAS_METHOD_CHAIN IS BELOW. HIDE YOUR EYES!
-
-        def self.included(base)
-          base.class_eval do
-            alias_method_chain :where_values_hash, :metawhere
-          end
-        end
-
-        def where_values_hash_with_metawhere
-          equalities = find_equality_predicates(predicate_visitor.accept(@where_values))
-
-          Hash[equalities.map { |where| [where.left.name, where.right] }]
         end
 
         def find_equality_predicates(nodes)
@@ -228,6 +214,44 @@ module MetaWhere
           else
             arel.to_sql
           end
+        end
+
+        ### ZOMG ALIAS_METHOD_CHAIN IS BELOW. HIDE YOUR EYES!
+        # ...
+        # ...
+        # ...
+        # Since you're still looking, let me explain this horrible
+        # transgression you see before you.
+        # You see, Relation#where_values is defined on the
+        # ActiveRecord::Relation class. Since it's defined there, but
+        # I would very much like to modify its behavior, I have three
+        # choices.
+        #
+        # 1. Inherit from ActiveRecord::Relation in a MetaWhere::Relation
+        #    class, and make an attempt to usurp all of the various calls
+        #    to methods on ActiveRecord::Relation by doing some really
+        #    evil stuff with constant reassignment, all for the sake of
+        #    being able to use super().
+        #
+        # 2. Submit a patch to Rails core, breaking this method off into
+        #    another module, all for my own selfish desire to use super()
+        #    while mucking about in Rails internals.
+        #
+        # 3. Use alias_method_chain, and say 10 hail Hanssons as penance.
+        #
+        # I opted to go with #3. Except for the hail Hansson thing.
+        # Unless you're DHH, in which case, I totally said them.
+
+        def self.included(base)
+          base.class_eval do
+            alias_method_chain :where_values_hash, :metawhere
+          end
+        end
+
+        def where_values_hash_with_metawhere
+          equalities = find_equality_predicates(predicate_visitor.accept(@where_values))
+
+          Hash[equalities.map { |where| [where.left.name, where.right] }]
         end
 
       end
