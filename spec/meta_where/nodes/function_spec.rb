@@ -21,6 +21,26 @@ module MetaWhere
         end
       end
 
+      MetaWhere::DEFAULT_PREDICATE_ALIASES.each do |method_name, aliases|
+        aliases.each do |aliaz|
+          ['', '_any', '_all'].each do |suffix|
+            it "creates #{method_name.to_s + suffix} predicates with no value using the alias #{aliaz.to_s + suffix}" do
+              predicate = @f.send(aliaz.to_s + suffix)
+              predicate.expr.should eq @f
+              predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+              predicate.value?.should be_false
+            end
+
+            it "creates #{method_name.to_s + suffix} predicates with a value using the alias #{aliaz.to_s + suffix}" do
+              predicate = @f.send((aliaz.to_s + suffix), 'value')
+              predicate.expr.should eq @f
+              predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+              predicate.value.should eq 'value'
+            end
+          end
+        end
+      end
+
       it 'creates eq predicates with >>' do
         predicate = @f >> 1
         predicate.expr.should eq @f

@@ -1,4 +1,8 @@
+require 'meta_where/configuration'
+
 module MetaWhere
+  extend Configuration
+
   PREDICATES = [
     :eq, :eq_any, :eq_all,
     :not_eq, :not_eq_any, :not_eq_all,
@@ -10,17 +14,19 @@ module MetaWhere
     :gteq, :gteq_any, :gteq_all,
     :in, :in_any, :in_all,
     :not_in, :not_in_any, :not_in_all
-  ]
+  ].freeze
 
-  def self.configure
-    yield self
-  end
-
-  def self.load_core_extensions!
-    require 'core_ext'
-  end
+  DEFAULT_PREDICATE_ALIASES = {
+    :matches        => [:like],
+    :does_not_match => [:not_like],
+    :lteq           => [:lte],
+    :gteq           => [:gte]
+  }.freeze
 end
 
+require 'meta_where/nodes'
 require 'meta_where/dsl'
 require 'meta_where/visitors'
 require 'meta_where/adapters/active_record'
+
+MetaWhere.setup_default_aliases!

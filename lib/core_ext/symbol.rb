@@ -1,5 +1,3 @@
-require 'meta_where/nodes'
-
 class Symbol
 
   MetaWhere::PREDICATES.each do |method_name|
