@@ -1,7 +1,7 @@
 module MetaWhere
   module Nodes
     class Join
-      attr_reader :name, :type
+      attr_reader :name, :type, :klass
 
       def initialize(name, type = Arel::InnerJoin, klass = nil)
         @name, @type = name, type
@@ -18,13 +18,8 @@ module MetaWhere
         self
       end
 
-      def klass(class_or_class_name = nil)
-        if class_or_class_name.nil?
-          @klass
-        else
-          self.klass = class_or_class_name
-          self
-        end
+      def klass=(class_or_class_name)
+        @klass = convert_to_class(class_or_class_name)
       end
 
       def polymorphic?
@@ -39,10 +34,6 @@ module MetaWhere
       end
 
       private
-
-      def klass=(value)
-        @klass = convert_to_class(value)
-      end
 
       def convert_to_class(value)
         case value

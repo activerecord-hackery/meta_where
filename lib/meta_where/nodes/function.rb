@@ -21,19 +21,24 @@ module MetaWhere
         RUBY
       end
 
-      def >>(value)
+      def ==(value)
         Predicate.new self, :eq, value
       end
+
+      # Won't work on Ruby 1.8.x so need to do this conditionally
+      define_method('!=') do |value|
+        Predicate.new(self, :not_eq, value)
+      end if respond_to?('!=')
 
       def ^(value)
         Predicate.new self, :not_eq, value
       end
 
-      def +(value)
+      def >>(value)
         Predicate.new self, :in, value
       end
 
-      def -(value)
+      def <<(value)
         Predicate.new self, :not_in, value
       end
 
@@ -43,7 +48,7 @@ module MetaWhere
 
       # Won't work on Ruby 1.8.x so need to do this conditionally
       define_method('!~') do |value|
-        Predicate.new(self.symbol, value, :does_not_match)
+        Predicate.new(self, :does_not_match, value)
       end if respond_to?('!~')
 
       def >(value)

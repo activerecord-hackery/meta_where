@@ -24,14 +24,14 @@ describe Symbol do
         it "creates #{method_name.to_s + suffix} predicates with no value using the alias #{aliaz.to_s + suffix}" do
           predicate = :attribute.send(aliaz.to_s + suffix)
           predicate.expr.should eq :attribute
-          predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+          predicate.method_name.should eq "#{method_name}#{suffix}".to_sym
           predicate.value?.should be_false
         end
 
         it "creates #{method_name.to_s + suffix} predicates with a value using the alias #{aliaz.to_s + suffix}" do
           predicate = :attribute.send((aliaz.to_s + suffix), 'value')
           predicate.expr.should eq :attribute
-          predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+          predicate.method_name.should eq "#{method_name}#{suffix}".to_sym
           predicate.value.should eq 'value'
         end
       end

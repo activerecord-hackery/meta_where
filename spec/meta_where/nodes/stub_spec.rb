@@ -19,6 +19,14 @@ module MetaWhere
         @s.to_s.should eq 'attribute'
       end
 
+      it 'merges against matching stubs' do
+        hash1 = {Stub.new(:attribute) => 1}
+        hash2 = {Stub.new(:attribute) => 2}
+        merged = hash1.merge(hash2)
+        merged.keys.should have(1).key
+        merged[Stub.new(:attribute)].should eq 2
+      end
+
       MetaWhere::PREDICATES.each do |method_name|
         it "creates #{method_name} predicates with no value" do
           predicate = @s.send(method_name)
@@ -41,22 +49,22 @@ module MetaWhere
             it "creates #{method_name.to_s + suffix} predicates with no value using the alias #{aliaz.to_s + suffix}" do
               predicate = @s.send(aliaz.to_s + suffix)
               predicate.expr.should eq :attribute
-              predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+              predicate.method_name.should eq "#{method_name}#{suffix}".to_sym
               predicate.value?.should be_false
             end
 
             it "creates #{method_name.to_s + suffix} predicates with a value using the alias #{aliaz.to_s + suffix}" do
               predicate = @s.send((aliaz.to_s + suffix), 'value')
               predicate.expr.should eq :attribute
-              predicate.method_name.should eq (method_name.to_s + suffix).to_sym
+              predicate.method_name.should eq "#{method_name}#{suffix}".to_sym
               predicate.value.should eq 'value'
             end
           end
         end
       end
 
-      it 'creates eq predicates with >>' do
-        predicate = @s >> 1
+      it 'creates eq predicates with ==' do
+        predicate = @s == 1
         predicate.expr.should eq :attribute
         predicate.method_name.should eq :eq
         predicate.value.should eq 1
@@ -69,15 +77,22 @@ module MetaWhere
         predicate.value.should eq 1
       end
 
-      it 'creates in predicates with +' do
-        predicate = @s + [1,2,3]
+      it 'creates not_eq predicates with !=' do
+        predicate = @s != 1
+        predicate.expr.should eq :attribute
+        predicate.method_name.should eq :not_eq
+        predicate.value.should eq 1
+      end if respond_to?('!=')
+
+      it 'creates in predicates with >>' do
+        predicate = @s >> [1,2,3]
         predicate.expr.should eq :attribute
         predicate.method_name.should eq :in
         predicate.value.should eq [1,2,3]
       end
 
-      it 'creates not_in predicates with -' do
-        predicate = @s - [1,2,3]
+      it 'creates not_in predicates with <<' do
+        predicate = @s << [1,2,3]
         predicate.expr.should eq :attribute
         predicate.method_name.should eq :not_in
         predicate.value.should eq [1,2,3]
@@ -91,11 +106,11 @@ module MetaWhere
       end
 
       it 'creates does_not_match predicates with !~' do
-        predicate = @s =~ '%bob%'
+        predicate = @s !~ '%bob%'
         predicate.expr.should eq :attribute
-        predicate.method_name.should eq :matches
+        predicate.method_name.should eq :does_not_match
         predicate.value.should eq '%bob%'
-      end
+      end if respond_to?('!~')
 
       it 'creates gt predicates with >' do
         predicate = @s > 1

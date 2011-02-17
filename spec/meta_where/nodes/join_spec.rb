@@ -15,6 +15,13 @@ module MetaWhere
         @j.type.should eq Arel::OuterJoin
       end
 
+      it 'allows setting polymorphic class' do
+        @j = Join.new :name
+        @j.klass = Person
+        @j.should be_polymorphic
+        @j.klass.should eq Person
+      end
+
     end
   end
 end

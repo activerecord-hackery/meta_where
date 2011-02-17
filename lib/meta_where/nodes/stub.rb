@@ -13,8 +13,6 @@ module MetaWhere
         self.symbol == other.symbol
       end
 
-      alias :== :eql?
-
       def hash
         symbol.hash
       end
@@ -35,19 +33,24 @@ module MetaWhere
         RUBY
       end
 
-      def >>(value)
+      def ==(value)
         Predicate.new self.symbol, :eq, value
       end
+
+      # Won't work on Ruby 1.8.x so need to do this conditionally
+      define_method('!=') do |value|
+        Predicate.new(self.symbol, :not_eq, value)
+      end if respond_to?('!=')
 
       def ^(value)
         Predicate.new self.symbol, :not_eq, value
       end
 
-      def +(value)
+      def >>(value)
         Predicate.new self.symbol, :in, value
       end
 
-      def -(value)
+      def <<(value)
         Predicate.new self.symbol, :not_in, value
       end
 
@@ -57,7 +60,7 @@ module MetaWhere
 
       # Won't work on Ruby 1.8.x so need to do this conditionally
       define_method('!~') do |value|
-        Predicate.new(self.symbol, value, :does_not_match)
+        Predicate.new(self.symbol, :does_not_match, value)
       end if respond_to?('!~')
 
       def >(value)

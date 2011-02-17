@@ -218,17 +218,18 @@ module MetaWhere
           end
 
           it 'builds compound conditions with a block' do
-            standard = Person.where(:name => 'bob', :salary => 100000)
-            block = Person.where{name >> 'bob' & salary >> 100000}
-            block.to_sql.should eq standard.to_sql
+            block = Person.where{(name == 'bob') & (salary == 100000)}
+            block.to_sql.should match /"people"."name" = 'bob'/
+            block.to_sql.should match /AND/
+            block.to_sql.should match /"people"."salary" = 100000/
           end
 
           it 'allows mixing hash and operator syntax inside a block' do
-            standard = Person.joins(:comments).
-                              where(:name => 'bob', :comments => {:body => 'First post!'})
             block = Person.joins(:comments).
-                           where{name >> 'bob' & {comments => body >> 'First post!'}}
-            block.to_sql.should eq standard.to_sql
+                           where{(name == 'bob') & {comments => (body == 'First post!')}}
+            block.to_sql.should match /"people"."name" = 'bob'/
+            block.to_sql.should match /AND/
+            block.to_sql.should match /"comments"."body" = 'First post!'/
           end
 
         end
@@ -268,7 +269,7 @@ module MetaWhere
           end
 
           it 'allows complex conditions on aggregate columns' do
-            relation = Person.group(:parent_id).having{salary >> max[salary]}
+            relation = Person.group(:parent_id).having{salary == max[salary]}
             relation.first.name.should eq 'Gladyce Kulas'
           end
 
