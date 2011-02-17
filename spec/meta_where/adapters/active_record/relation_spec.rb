@@ -326,6 +326,25 @@ module MetaWhere
 
         end
 
+        describe '#merge' do
+
+          it 'merges relations with the same base' do
+            relation = Person.where{name == 'bob'}.merge(Person.where{salary == 100000})
+            sql = relation.to_sql
+            sql.should match /"people"."name" = 'bob'/
+            sql.should match /"people"."salary" = 100000/
+          end
+
+          it 'merges relations with a different base' do
+            relation = Person.where{name == 'bob'}.merge(Article.where{title == 'Hello world!'})
+            sql = relation.to_sql
+            sql.should match /INNER JOIN "articles" ON "articles"."person_id" = "people"."id"/
+            sql.should match /"people"."name" = 'bob'/
+            sql.should match /"articles"."title" = 'Hello world!'/
+          end
+
+        end
+
         describe '#to_a' do
 
           it 'eager-loads associations with dependent conditions' do

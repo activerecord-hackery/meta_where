@@ -18,6 +18,10 @@ module MetaWhere
         respond_to? DISPATCH[object.class]
       end
 
+      def self.can_accept?(object)
+        method_defined? DISPATCH[object.class]
+      end
+
       private
 
       DISPATCH = Hash.new do |hash, klass|

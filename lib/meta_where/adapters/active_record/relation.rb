@@ -31,6 +31,33 @@ module MetaWhere
           )
         end
 
+        def merge(r, association_name = nil)
+          if association_name || relation_with_different_base?(r)
+            r = r.clone
+            association_name ||= infer_association_for_relation_merge(r)
+            prepare_relation_for_association_merge!(r, association_name)
+            self.joins_values += [association_name] if reflect_on_association(association_name)
+          end
+
+          super(r)
+        end
+
+        def relation_with_different_base?(r)
+          ::ActiveRecord::Relation === r &&
+          base_class.name != r.klass.base_class.name
+        end
+
+        def infer_association_for_relation_merge(r)
+          default_association = reflect_on_all_associations.detect {|a| a.class_name == r.klass.name}
+          default_association ? default_association.name : r.table_name.to_sym
+        end
+
+        def prepare_relation_for_association_merge!(r, association_name)
+          r.where_values.map! {|w| MetaWhere::Visitors::PredicateVisitor.can_accept?(w) ? {association_name => w} : w}
+          r.having_values.map! {|h| MetaWhere::Visitors::PredicateVisitor.can_accept?(h) ? {association_name => h} : h}
+          r.joins_values.map! {|j| [Symbol, Hash, Nodes::Stub, Nodes::Join].include?(j.class) ? {association_name => j} : j}
+        end
+
         def build_arel
           arel = table.from table
 
