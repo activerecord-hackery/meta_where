@@ -186,7 +186,7 @@ module MetaWhere
           end
 
           it 'falls back to Array#select behavior with a block that has an arity' do
-            people = Person.select {|p| p.name =~ /John/}
+            people = Person.select{|p| p.name =~ /John/}
             people.should have(1).person
             people.first.name.should eq 'Miss Cameron Johnson'
           end
@@ -203,7 +203,7 @@ module MetaWhere
           end
 
           it 'allows a function in the select values via block' do
-            relation = Person.select{max[id].as(max_id)}
+            relation = Person.select{max(id).as(max_id)}
             relation.first.max_id.should eq 332
           end
 
