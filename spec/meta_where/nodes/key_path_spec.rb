@@ -38,6 +38,47 @@ module MetaWhere
         @k.endpoint.args.should eq [1,2,3]
       end
 
+      it 'creates AND nodes with & if the endpoint responds to &' do
+        node = @k.third.fourth.eq('Bob') & Stub.new(:attr).eq('Joe')
+        node.should be_a And
+        node.children.should eq [@k, Stub.new(:attr).eq('Joe')]
+      end
+
+      it 'raises NoMethodError with & if the endpoint does not respond to &' do
+        expect {@k.third.fourth & Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
+      end
+
+      it 'creates OR nodes with | if the endpoint responds to |' do
+        node = @k.third.fourth.eq('Bob') | Stub.new(:attr).eq('Joe')
+        node.should be_a Or
+        node.left.should eq @k
+        node.right.should eq Stub.new(:attr).eq('Joe')
+      end
+
+      it 'raises NoMethodError with | if the endpoint does not respond to |' do
+        expect {@k.third.fourth | Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
+      end
+
+      it 'creates AND nodes with a NOT right hand side with - if the endpoint responds to -' do
+        node = @k.third.fourth.eq('Bob') - Stub.new(:attr).eq('Joe')
+        node.should be_a And
+        node.children.should eq [@k, Not.new(Stub.new(:attr).eq('Joe'))]
+      end
+
+      it 'raises NoMethodError with - if the endpoint does not respond to -' do
+        expect {@k.third.fourth - Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
+      end
+
+      it 'creates NOT nodes with -@ if the endpoint responds to -@' do
+        node = - @k.third.fourth.eq('Bob')
+        node.should be_a Not
+        node.expr.should eq @k
+      end
+
+      it 'raises NoMethodError with -@ if the endpoint does not respond to -@' do
+        expect {-@k.third.fourth}.to raise_error NoMethodError
+      end
+
     end
   end
 end

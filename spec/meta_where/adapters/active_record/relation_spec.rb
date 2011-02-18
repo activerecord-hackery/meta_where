@@ -131,6 +131,12 @@ module MetaWhere
             arel.to_sql.should match /"people"."name" LIKE '%bob%' AND "people"."name" LIKE '%joe%'/
           end
 
+          it 'handles ORs between predicates' do
+            relation = Person.joins{articles}.where{(name =~ 'Joe%') | (articles.title =~ 'Hello%')}
+            arel = relation.build_arel
+            arel.to_sql.should match /OR/
+          end
+
           it 'maps havings inside a hash to their appropriate association table' do
             relation = Person.joins({
               :children => {

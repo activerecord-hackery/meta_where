@@ -1,6 +1,9 @@
+require 'meta_where/nodes/operators'
+
 module MetaWhere
   module Nodes
     class KeyPath
+      include Operators
 
       attr_reader :path, :endpoint
 
@@ -16,7 +19,26 @@ module MetaWhere
         self.endpoint.eql?(other.endpoint)
       end
 
-      undef :==   # To let it fall through to Stub#method_missing
+      def |(other)
+        endpoint.respond_to?(:|) ? super : no_method_error(:|)
+      end
+
+      def &(other)
+        endpoint.respond_to?(:&) ? super : no_method_error(:&)
+      end
+
+      def -(other)
+        endpoint.respond_to?(:-) ? super : no_method_error(:-)
+      end
+
+      def -@
+        endpoint.respond_to?(:-@) ? super : no_method_error(:-@)
+      end
+
+      # To let these fall through to the endpoint via method_missing
+      instance_methods.grep(/^(==|=~|!~)$/) do |operator|
+        undef_method operator
+      end
 
       def hash
         [self.class, endpoint, *path].hash
@@ -62,6 +84,12 @@ module MetaWhere
         else
           super
         end
+      end
+
+      private
+
+      def no_method_error(method_id)
+        raise NoMethodError, "undefined method `#{method_id}' for #{self}:#{self.class}"
       end
 
     end

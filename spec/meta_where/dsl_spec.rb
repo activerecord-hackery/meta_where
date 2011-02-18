@@ -21,5 +21,13 @@ module MetaWhere
       result.klass.should eq Person
     end
 
+    it 'handles OR between predicates' do
+      result = DSL.evaluate {(name =~ 'Joe%') | (articles.title =~ 'Hello%')}
+      result.should be_a Nodes::Or
+      result.left.should be_a Nodes::Predicate
+      result.right.should be_a Nodes::KeyPath
+      result.right.endpoint.should be_a Nodes::Predicate
+    end
+
   end
 end
