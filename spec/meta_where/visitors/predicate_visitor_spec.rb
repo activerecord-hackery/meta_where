@@ -112,6 +112,14 @@ module MetaWhere
         predicate.expr.children.first.left.relation.table_alias.should eq 'children_people'
       end
 
+      it 'treats hash keys as an association when there is a KeyPath on the value side' do
+        predicate = @v.accept(:children => Nodes::Stub.new(:children).name.eq('Joe'))
+        predicate.should be_a Arel::Nodes::Equality
+        predicate.left.relation.table_alias.should eq 'children_people_2'
+        predicate.left.name.should eq :name
+        predicate.right.should eq 'Joe'
+      end
+
       it 'creates an ARel Grouping node containing an And node for And nodes' do
         left = :name.matches % 'Joe%'
         right = :id.gt % 1

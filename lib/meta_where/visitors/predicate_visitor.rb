@@ -76,9 +76,7 @@ module MetaWhere
 
       def implies_context_change?(v)
         case v
-        when Hash
-          true
-        when Nodes::Predicate
+        when Hash, Nodes::Predicate, Nodes::KeyPath
           true
         when Array
           (!v.empty? && v.all? {|val| can_accept?(val)})
@@ -96,12 +94,10 @@ module MetaWhere
           end
 
         case v
-        when Hash
+        when Hash, Nodes::Predicate, Nodes::KeyPath
           accept(v, parent || k)
         when Array
           v.map {|val| accept(val, parent || k)}
-        when Nodes::Predicate
-          accept(v, parent || k)
         else
           raise ArgumentError, <<-END
           Hashes, Predicates, and arrays of visitables as values imply that their
@@ -116,16 +112,16 @@ module MetaWhere
         when Nodes::Predicate
           accept(k % v, parent)
         when Nodes::Function
-          arel_predicate_for(accept(k, parent), v)
+          arel_predicate_for(accept(k, parent), v, parent)
         when Nodes::KeyPath
           accept(k % v, parent)
         else
           attribute = contextualize(parent)[k.to_sym]
-          arel_predicate_for(attribute, v)
+          arel_predicate_for(attribute, v, parent)
         end
       end
 
-      def arel_predicate_for(attribute, value)
+      def arel_predicate_for(attribute, value, parent)
         if [Array, Range, Arel::SelectManager].include?(value.class)
           attribute.in(value)
         else
