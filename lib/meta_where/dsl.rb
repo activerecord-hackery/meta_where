@@ -1,14 +1,13 @@
 module MetaWhere
   class DSL
 
-    original_verbosity = $VERBOSE
-    $VERBOSE = nil
-    (instance_methods + private_instance_methods).each do |method|
-      unless method.to_s =~ /^(__|instance_eval)/
-        undef_method method
+    MetaWhere.evil_things do
+      (instance_methods + private_instance_methods).each do |method|
+        unless method.to_s =~ /^(__|instance_eval)/
+          undef_method method
+        end
       end
     end
-    $VERBOSE = original_verbosity
 
     def self.evaluate(&block)
       self.new.instance_eval(&block)

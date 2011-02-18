@@ -4,13 +4,13 @@ module MetaWhere
   module Visitors
     class Base
       attr_accessor :context
-      delegate :contextualize, :find, :traverse, :base, :engine, :arel_visitor, :to => :context
+      delegate :contextualize, :find, :traverse, :sanitize_sql, :engine, :arel_visitor, :to => :context
 
       def initialize(context = nil)
         @context = context
       end
 
-      def accept(object, parent = base)
+      def accept(object, parent = context.base)
         visit(object, parent)
       end
 

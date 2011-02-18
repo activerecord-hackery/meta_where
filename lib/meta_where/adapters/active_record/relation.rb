@@ -203,6 +203,7 @@ module MetaWhere
         end
 
         def collapse_wheres(arel, wheres)
+          wheres = [wheres] unless Array === wheres
           binaries = wheres.grep(Arel::Nodes::Binary)
 
           groups = binaries.group_by {|b| b.class}

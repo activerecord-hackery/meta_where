@@ -25,7 +25,7 @@ module MetaWhere
 
       def visit_Array(o, parent)
         if o.first.is_a? String
-          base.send(:sanitize_sql, o)
+          sanitize_sql(o, parent)
         else
           o.map { |v| can_accept?(v) ? accept(v, parent) : v }.flatten
         end
@@ -75,8 +75,16 @@ module MetaWhere
       end
 
       def implies_context_change?(v)
-        Hash === v || Nodes::Predicate === v ||
-        (Array === v && !v.empty? && v.all? {|val| can_accept?(val)})
+        case v
+        when Hash
+          true
+        when Nodes::Predicate
+          true
+        when Array
+          (!v.empty? && v.all? {|val| can_accept?(val)})
+        else
+          false
+        end
       end
 
       def visit_with_context_change(k, v, parent)

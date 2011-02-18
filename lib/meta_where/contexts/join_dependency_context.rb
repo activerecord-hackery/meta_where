@@ -17,7 +17,7 @@ module MetaWhere
         @tables = Hash.new {|hash, key| hash[key] = get_table(key)}
       end
 
-      def find(object, parent = base)
+      def find(object, parent = @base)
         if JoinPart === parent
           object = object.to_sym if String === object
           case object
@@ -40,7 +40,7 @@ module MetaWhere
         end
       end
 
-      def traverse(path, parent = base)
+      def traverse(path, parent = @base)
         path.each do |key|
           parent = find(key, parent)
         end
@@ -49,6 +49,10 @@ module MetaWhere
 
       def contextualize(object)
         @tables[object]
+      end
+
+      def sanitize_sql(conditions, parent)
+        parent.active_record.send(:sanitize_sql, conditions, parent.aliased_table_name)
       end
 
       private

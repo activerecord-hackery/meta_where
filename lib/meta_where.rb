@@ -2,6 +2,14 @@ require 'meta_where/configuration'
 
 module MetaWhere
   extend Configuration
+
+  def self.evil_things
+    original_verbosity = $VERBOSE
+    $VERBOSE = nil
+    yield
+  ensure
+    $VERBOSE = original_verbosity
+  end
 end
 
 require 'meta_where/nodes'
