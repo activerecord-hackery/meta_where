@@ -64,6 +64,22 @@ module MetaWhere
         keypath.to_sql.should eq standard.to_sql
       end
 
+      it 'allows incomplete predicates (missing value) as keys' do
+        standard = @v.accept({
+          :children => {
+            :children => {
+              :parent => {
+                :parent => {
+                  :name.matches => 'Joe%'
+                }
+              }
+            }
+          }
+        })
+        keypath = @v.accept(Nodes::Stub.new(:children).children.parent.parent.name.matches => 'Joe%')
+        keypath.to_sql.should eq standard.to_sql
+      end
+
       it 'allows hashes inside keypath keys' do
         standard = @v.accept({
           :children => {

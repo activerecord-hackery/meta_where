@@ -30,8 +30,10 @@ module MetaWhere
         case endpoint
         when Stub, Function
           eq(val)
+          self
         else
           endpoint % val
+          self
         end
       end
 
@@ -44,15 +46,21 @@ module MetaWhere
       end
 
       def method_missing(method_id, *args)
-        super unless Stub === endpoint
-
         if endpoint.respond_to? method_id
           @endpoint = @endpoint.send(method_id, *args)
           self
-        else
+        elsif Stub === endpoint
           @path << endpoint.symbol
-          @endpoint = Stub.new(method_id)
+          if args.empty?
+            @endpoint = Stub.new(method_id)
+          elsif (args.size == 1) && (Class === args[0])
+            @endpoint = Join.new(method_id, Arel::InnerJoin, args[0])
+          else
+            @endpoint = Nodes::Function.new method_id, args
+          end
           self
+        else
+          super
         end
       end
 
