@@ -21,9 +21,9 @@ module MetaWhere
         if JoinPart === parent
           object = object.to_sym if String === object
           case object
-          when Symbol
+          when Symbol, Nodes::Stub
             @join_dependency.join_associations.detect { |j|
-              j.reflection.name == object && j.parent == parent
+              j.reflection.name == object.to_sym && j.parent == parent
             }
           when Nodes::Join
             @join_dependency.join_associations.detect { |j|
@@ -40,6 +40,13 @@ module MetaWhere
         end
       end
 
+      def traverse(path, parent = base)
+        path.each do |key|
+          parent = find(key, parent)
+        end
+        parent
+      end
+
       def contextualize(object)
         @tables[object]
       end
@@ -47,8 +54,8 @@ module MetaWhere
       private
 
       def get_table(object)
-        if object.is_a?(Symbol)
-          Arel::Table.new(object, :engine => @engine)
+        if [Symbol, Nodes::Stub].include?(object.class)
+          Arel::Table.new(object.to_sym, :engine => @engine)
         elsif object.respond_to?(:aliased_table_name)
           Arel::Table.new(object.table_name, :as => object.aliased_table_name, :engine => @engine)
         else

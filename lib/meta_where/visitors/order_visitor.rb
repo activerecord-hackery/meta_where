@@ -6,17 +6,37 @@ module MetaWhere
     class OrderVisitor < Base
 
       def visit_Hash(o, parent)
-        k = k.symbol if Nodes::Stub === k
         o.map do |k, v|
-          if Hash === v
-            accept(v, find(k, parent) || k)
-          elsif v.is_a?(Array) && !v.empty? && v.all? {|val| can_accept?(val)}
-            new_parent = find(k, parent)
-            v.map {|val| accept(val, new_parent || k)}
+          if implies_context_change?(v)
+            visit_with_context_change(k, v, parent)
           else
-            can_accept?(v) ? accept(v, find(k, parent) || k) : v
+            visit_without_context_change(k, v, parent)
           end
         end.flatten
+      end
+
+      def implies_context_change?(v)
+        Hash === v || can_accept?(v) ||
+        (Array === v && !v.empty? && v.all? {|val| can_accept?(val)})
+      end
+
+      def visit_with_context_change(k, v, parent)
+        parent = case k
+          when Nodes::KeyPath
+            traverse(k.path_with_endpoint, parent)
+          else
+            find(k, parent)
+          end
+
+        if Array === v
+          v.map {|val| accept(val, parent || k)}
+        else
+          can_accept?(v) ? accept(v, parent || k) : v
+        end
+      end
+
+      def visit_without_context_change(k, v, parent)
+        v
       end
 
       def visit_Array(o, parent)
@@ -29,6 +49,12 @@ module MetaWhere
 
       def visit_MetaWhere_Nodes_Stub(o, parent)
         contextualize(parent)[o.symbol]
+      end
+
+      def visit_MetaWhere_Nodes_KeyPath(o, parent)
+        parent = traverse(o.path, parent)
+
+        accept(o.endpoint, parent)
       end
 
       def visit_MetaWhere_Nodes_Order(o, parent)

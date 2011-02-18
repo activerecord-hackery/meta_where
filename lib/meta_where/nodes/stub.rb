@@ -25,6 +25,11 @@ module MetaWhere
         symbol.to_s
       end
 
+      def method_missing(method_id, *args)
+        super if method_id == :to_ary
+        KeyPath.new(self.symbol, method_id)
+      end
+
       MetaWhere::PREDICATES.each do |method_name|
         class_eval <<-RUBY
           def #{method_name}(value = :__undefined__)

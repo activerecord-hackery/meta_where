@@ -7,27 +7,10 @@ module MetaWhere
 
       def visit_Hash(o, parent)
         predicates = o.map do |k, v|
-          k = k.symbol if Nodes::Stub === k
-          if Hash === v
-            accept(v, find(k, parent) || k)
-          elsif v.is_a?(Array) && !v.empty? && v.all? {|val| can_accept?(val)}
-            new_parent = find(k, parent)
-            v.map {|val| accept(val, new_parent || k)}
-          elsif Nodes::Predicate === v
-            accept(v, find(k, parent) || k)
-          elsif Nodes::Function === v
-            attribute = contextualize(parent)[k]
-            attribute.eq(accept(v, parent))
+          if implies_context_change?(v)
+            visit_with_context_change(k, v, parent)
           else
-            case k
-            when Nodes::Predicate
-              accept(k % v, parent)
-            when Nodes::Function
-              [Array, Range, Arel::SelectManager].include?(v.class) ? accept(k, parent).in(v) : accept(k, parent).eq(v)
-            else
-              attribute = contextualize(parent)[k]
-              [Array, Range, Arel::SelectManager].include?(v.class) ? attribute.in(v) : attribute.eq(v)
-            end
+            visit_without_context_change(k, v, parent)
           end
         end
 
@@ -46,6 +29,12 @@ module MetaWhere
         else
           o.map { |v| can_accept?(v) ? accept(v, parent) : v }.flatten
         end
+      end
+
+      def visit_MetaWhere_Nodes_KeyPath(o, parent)
+        parent = traverse(o.path, parent)
+
+        accept(o.endpoint, parent)
       end
 
       def visit_MetaWhere_Nodes_Predicate(o, parent)
@@ -83,6 +72,58 @@ module MetaWhere
 
       def visit_MetaWhere_Nodes_Not(o, parent)
         accept(o.expr, parent).not
+      end
+
+      def implies_context_change?(v)
+        Hash === v || Nodes::Predicate === v ||
+        (Array === v && !v.empty? && v.all? {|val| can_accept?(val)})
+      end
+
+      def visit_with_context_change(k, v, parent)
+        parent = case k
+          when Nodes::KeyPath
+            traverse(k.path_with_endpoint, parent)
+          else
+            find(k, parent)
+          end
+
+        case v
+        when Hash
+          accept(v, parent || k)
+        when Array
+          v.map {|val| accept(val, parent || k)}
+        when Nodes::Predicate
+          accept(v, parent || k)
+        else
+          raise ArgumentError, <<-END
+          Hashes, Predicates, and arrays of visitables as values imply that their
+          corresponding keys are a parent. This didn't work out so well in the case
+          of key = #{k} and value = #{v}"
+          END
+        end
+      end
+
+      def visit_without_context_change(k, v, parent)
+        case k
+        when Nodes::Predicate
+          accept(k % v, parent)
+        when Nodes::Function
+          arel_predicate_for(accept(k, parent), v)
+        when Nodes::KeyPath
+          accept(k % v, parent)
+        else
+          attribute = contextualize(parent)[k.to_sym]
+          arel_predicate_for(attribute, v)
+        end
+      end
+
+      def arel_predicate_for(attribute, value)
+        if [Array, Range, Arel::SelectManager].include?(value.class)
+          attribute.in(value)
+        else
+          value = can_accept?(value) ? accept(value, parent) : value
+          attribute.eq(value)
+        end
       end
 
     end

@@ -23,7 +23,7 @@ module MetaWhere
       end
 
       it 'creates the ordering against the proper table for nested hashes' do
-        predicates = @v.accept({
+        orders = @v.accept({
           :children => {
             :children => {
               :parent => {
@@ -32,16 +32,32 @@ module MetaWhere
             }
           }
         })
-        predicates.should be_a Array
-        ordering = predicates.first
+        orders.should be_a Array
+        ordering = orders.first
         ordering.should be_a Arel::Nodes::Ordering
         ordering.expr.relation.table_alias.should eq 'parents_people_2'
         ordering.direction.should eq :asc
       end
 
       it 'will not alter values it is unable to accept' do
-        predicates = @v.accept(['THIS PARAMETER', 'WHAT DOES IT MEAN???'])
-        predicates.should eq ['THIS PARAMETER', 'WHAT DOES IT MEAN???']
+        orders = @v.accept(['THIS PARAMETER', 'WHAT DOES IT MEAN???'])
+        orders.should eq ['THIS PARAMETER', 'WHAT DOES IT MEAN???']
+      end
+
+      it 'treats keypath keys like nested hashes' do
+        ordering = @v.accept(Nodes::Stub.new(:children).children.parent.parent.name.asc)
+        ordering.should be_a Arel::Nodes::Ordering
+        ordering.expr.relation.table_alias.should eq 'parents_people_2'
+        ordering.direction.should eq :asc
+      end
+
+      it 'allows hashes inside keypath keys' do
+        orders = @v.accept(Nodes::Stub.new(:children).children.parent.parent => :name.asc)
+        orders.should be_a Array
+        ordering = orders.first
+        ordering.should be_a Arel::Nodes::Ordering
+        ordering.expr.relation.table_alias.should eq 'parents_people_2'
+        ordering.direction.should eq :asc
       end
 
     end

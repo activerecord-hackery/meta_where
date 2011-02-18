@@ -13,6 +13,19 @@ module MetaWhere
         @expr, @method_name, @value = expr, method_name, value
       end
 
+      def eql?(other)
+        self.class.eql?(other.class) &&
+        self.expr.eql?(other.expr) &&
+        self.method_name.eql?(other.method_name) &&
+        self.value.eql?(other.value)
+      end
+
+      alias :== :eql?
+
+      def hash
+        [self.class, expr, method_name, value].hash
+      end
+
       def value?
         @value != :__undefined__
       end

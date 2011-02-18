@@ -48,6 +48,38 @@ module MetaWhere
         predicate.right.should eq 'Joe'
       end
 
+      it 'treats keypath keys like nested hashes' do
+        standard = @v.accept({
+          :children => {
+            :children => {
+              :parent => {
+                :parent => {
+                  :name => 'Joe'
+                }
+              }
+            }
+          }
+        })
+        keypath = @v.accept(Nodes::Stub.new(:children).children.parent.parent.name => 'Joe')
+        keypath.to_sql.should eq standard.to_sql
+      end
+
+      it 'allows hashes inside keypath keys' do
+        standard = @v.accept({
+          :children => {
+            :children => {
+              :parent => {
+                :parent => {
+                  :name => 'Joe'
+                }
+              }
+            }
+          }
+        })
+        keypath = @v.accept(Nodes::Stub.new(:children).children.parent.parent => {:name => 'Joe'})
+        keypath.to_sql.should eq standard.to_sql
+      end
+
       it 'creates a node of the proper type when a hash has a Predicate as a key' do
         predicate = @v.accept(:name.matches => 'Joe%')
         predicate.should be_a Arel::Nodes::Matches

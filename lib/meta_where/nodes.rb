@@ -1,4 +1,5 @@
 require 'meta_where/nodes/stub'
+require 'meta_where/nodes/key_path'
 require 'meta_where/nodes/predicate'
 require 'meta_where/nodes/function'
 require 'meta_where/nodes/order'
