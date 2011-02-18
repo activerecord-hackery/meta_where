@@ -1,3 +1,5 @@
+require 'active_record'
+
 module MetaWhere
   module Adapters
     module ActiveRecord
