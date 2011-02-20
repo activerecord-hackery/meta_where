@@ -166,10 +166,10 @@ module MetaWhere
           case opts
           when String, Array
             super
-          else
+          else  # Let's prevent PredicateBuilder from doing its thing
             [opts, *other].map do |arg|
               case arg
-              when Array
+              when Array  # Just in case there's an array in there somewhere
                 @klass.send(:sanitize_sql, arg)
               when Hash
                 @klass.send(:expand_hash_conditions_for_aggregates, arg)

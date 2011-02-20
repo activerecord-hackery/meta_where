@@ -76,7 +76,7 @@ module MetaWhere
 
       def implies_context_change?(v)
         case v
-        when Hash, Nodes::Predicate, Nodes::KeyPath
+        when Hash, Nodes::KeyPath, Nodes::Predicate, Nodes::Unary, Nodes::Binary, Nodes::Nary
           true
         when Array
           (!v.empty? && v.all? {|val| can_accept?(val)})
@@ -94,7 +94,7 @@ module MetaWhere
           end
 
         case v
-        when Hash, Nodes::Predicate, Nodes::KeyPath
+        when Hash, Nodes::KeyPath, Nodes::Predicate, Nodes::Unary, Nodes::Binary, Nodes::Nary
           accept(v, parent || k)
         when Array
           v.map {|val| accept(val, parent || k)}

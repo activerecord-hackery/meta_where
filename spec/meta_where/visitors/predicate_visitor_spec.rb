@@ -112,6 +112,36 @@ module MetaWhere
         predicate.expr.children.first.left.relation.table_alias.should eq 'children_people'
       end
 
+      it 'treats hash keys as an association when there is an Or on the value side' do
+        predicate = @v.accept(:children => (:name.matches % 'Joe%' | :name.matches % 'Bob%'))
+        predicate.should be_a Arel::Nodes::Grouping
+        predicate.expr.should be_a Arel::Nodes::Or
+        predicate.expr.left.should be_a Arel::Nodes::Matches
+        predicate.expr.left.left.relation.table_alias.should eq 'children_people'
+      end
+
+      it 'treats hash keys as an association when there is an And on the value side' do
+        predicate = @v.accept(:children => (:name.matches % 'Joe%' & :name.matches % 'Bob%'))
+        predicate.should be_a Arel::Nodes::Grouping
+        predicate.expr.should be_a Arel::Nodes::And
+        predicate.expr.children.should have(2).items
+        predicate.expr.children.first.should be_a Arel::Nodes::Matches
+        predicate.expr.children.first.left.relation.table_alias.should eq 'children_people'
+      end
+
+      it 'treats hash keys as an association when there is a Not on the value side' do
+        predicate = @v.accept(:children => -(:name.matches % 'Joe%'))
+        predicate.should be_a Arel::Nodes::Not
+        predicate.expr.should be_a Arel::Nodes::Matches
+        predicate.expr.left.relation.table_alias.should eq 'children_people'
+      end
+
+      it 'treats hash keys as an association when there is a Predicate on the value side' do
+        predicate = @v.accept(:children => (:name.matches % 'Joe%'))
+        predicate.should be_a Arel::Nodes::Matches
+        predicate.left.relation.table_alias.should eq 'children_people'
+      end
+
       it 'treats hash keys as an association when there is a KeyPath on the value side' do
         predicate = @v.accept(:children => Nodes::Stub.new(:children).name.eq('Joe'))
         predicate.should be_a Arel::Nodes::Equality

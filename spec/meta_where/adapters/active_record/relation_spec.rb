@@ -43,6 +43,26 @@ module MetaWhere
 
         end
 
+        describe '#select_visitor' do
+
+          it 'creates a select visitor with a JoinDependencyContext for the relation' do
+            relation = Person.joins({
+              :children => {
+                :children => {
+                  :parent => :parent
+                }
+              }
+            })
+
+            visitor = relation.select_visitor
+
+            visitor.should be_a Visitors::SelectVisitor
+            table = visitor.contextualize(relation.join_dependency.join_parts.last)
+            table.table_alias.should eq 'parents_people_2'
+          end
+
+        end
+
         describe '#build_arel' do
 
           it 'joins associations' do
@@ -275,7 +295,7 @@ module MetaWhere
           end
 
           it 'allows complex conditions on aggregate columns' do
-            relation = Person.group(:parent_id).having{salary == max[salary]}
+            relation = Person.group(:parent_id).having{salary == max(salary)}
             relation.first.name.should eq 'Gladyce Kulas'
           end
 
@@ -295,6 +315,11 @@ module MetaWhere
 
           it 'sanitizes SQL as usual with strings' do
             wheres = Person.where('name like ?', '%bob%').where_values
+            wheres.should eq ["name like '%bob%'"]
+          end
+
+          it 'sanitizes SQL as usual with strings and hash substitution' do
+            wheres = Person.where('name like :name', :name => '%bob%').where_values
             wheres.should eq ["name like '%bob%'"]
           end
 
@@ -324,10 +349,16 @@ module MetaWhere
 
         describe '#where_values_hash' do
 
-          it 'allows creation of new records with equality predicates from wheres' do
+          it 'creates new records with equality predicates from wheres' do
             @person = Person.where(:name => 'bob', :parent_id => 3).new
             @person.parent_id.should eq 3
             @person.name.should eq 'bob'
+          end
+
+          it 'uses the last supplied equality predicate in where_values when creating new records' do
+            @person = Person.where(:name => 'bob', :parent_id => 3).where(:name => 'joe').new
+            @person.parent_id.should eq 3
+            @person.name.should eq 'joe'
           end
 
         end
