@@ -10,7 +10,11 @@ module MetaWhere
     end
 
     def self.evaluate(&block)
-      self.new.instance_eval(&block)
+      if block.arity > 0
+        yield self.new
+      else
+        self.new.instance_eval(&block)
+      end
     end
 
     def method_missing(method_id, *args)

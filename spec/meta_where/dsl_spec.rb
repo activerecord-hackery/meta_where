@@ -29,5 +29,45 @@ module MetaWhere
       result.right.endpoint.should be_a Nodes::Predicate
     end
 
+    it 'is not a full closure (instance_evals) when the block supplied has no arity' do
+      my_class = Class.new do
+        def a_method
+          'test'
+        end
+
+        def dsl_test
+          DSL.evaluate {name =~ a_method}
+        end
+      end
+
+      obj = my_class.new
+      result = obj.dsl_test
+      result.should be_a Nodes::Predicate
+      result.expr.should eq :name
+      result.method_name.should eq :matches
+      result.value.should be_a Nodes::Stub
+      result.value.symbol.should eq :a_method
+    end
+
+    it 'is a full closure (yields self) when the block supplied has an arity' do
+      my_class = Class.new do
+        def a_method
+          'test'
+        end
+
+        def dsl_test
+          DSL.evaluate {|q| q.name =~ a_method}
+        end
+      end
+
+      obj = my_class.new
+      result = obj.dsl_test
+      result.should be_a Nodes::Predicate
+      result.expr.should eq :name
+      result.method_name.should eq :matches
+      result.value.should be_a String
+      result.value.should eq 'test'
+    end
+
   end
 end
