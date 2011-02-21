@@ -190,6 +190,22 @@ module MetaWhere
         function.to_sql.should match /newname/
       end
 
+      context 'with polymorphic joins in the JoinDependency' do
+        before do
+          @jd = ActiveRecord::Associations::ClassMethods::JoinDependency.
+                new(Note, dsl{[notable(Article), notable(Person)]}, [])
+          @c = MetaWhere::Contexts::JoinDependencyContext.new(@jd)
+          @v = PredicateVisitor.new(@c)
+        end
+
+        it 'respects the polymorphic class in conditions' do
+          article_predicate = @v.accept dsl{{notable(Article) => {:title => 'Hello world!'}}}
+          person_predicate = @v.accept dsl{{notable(Person) => {:name => 'Ernie'}}}
+          article_predicate.left.relation.name.should eq 'articles'
+          person_predicate.left.relation.name.should eq 'people'
+        end
+      end
+
     end
   end
 end
