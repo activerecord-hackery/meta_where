@@ -1,6 +1,10 @@
+require 'meta_where/predicate_methods'
+
 module MetaWhere
   module Nodes
     class Function
+
+      include PredicateMethods
 
       attr_reader :name, :args, :alias
 
@@ -11,14 +15,6 @@ module MetaWhere
       def as(alias_name)
         @alias = alias_name.to_s
         self
-      end
-
-      MetaWhere::PREDICATES.each do |method_name|
-        eval <<-RUBY
-          def #{method_name}(value = :__undefined__)
-            Predicate.new self, :#{method_name}, value
-          end
-        RUBY
       end
 
       def ==(value)

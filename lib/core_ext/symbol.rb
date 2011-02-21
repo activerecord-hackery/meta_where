@@ -1,12 +1,8 @@
+require 'meta_where/predicate_methods'
+
 class Symbol
 
-  MetaWhere::PREDICATES.each do |method_name|
-    class_eval <<-RUBY
-      def #{method_name}(value = :__undefined__)
-        MetaWhere::Nodes::Predicate.new self, :#{method_name}, value
-      end
-    RUBY
-  end
+  include MetaWhere::PredicateMethods
 
   def asc
     MetaWhere::Nodes::Order.new self, 1

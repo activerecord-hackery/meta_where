@@ -1,9 +1,11 @@
+require 'meta_where/predicate_methods'
 require 'meta_where/nodes/operators'
 
 module MetaWhere
   module Nodes
     class Predicate
 
+      include PredicateMethods
       include Operators
 
       attr_accessor :value
@@ -33,16 +35,6 @@ module MetaWhere
       def %(val)
         @value = val
         self
-      end
-
-      MetaWhere::PREDICATES.each do |method_name|
-        class_eval <<-RUBY
-          def #{method_name}(value = :__undefined__)
-            @method_name = :#{method_name}
-            @value = value unless value == :__undefined__
-            self
-          end
-        RUBY
       end
 
       # expand_hash_conditions_for_aggregates assumes our hash keys can be

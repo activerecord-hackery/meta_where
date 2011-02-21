@@ -1,6 +1,10 @@
+require 'meta_where/predicate_methods'
+
 module MetaWhere
   module Nodes
     class Stub
+
+      include PredicateMethods
 
       attr_reader :symbol
 
@@ -28,14 +32,6 @@ module MetaWhere
       def method_missing(method_id, *args)
         super if method_id == :to_ary
         KeyPath.new(self.symbol, method_id)
-      end
-
-      MetaWhere::PREDICATES.each do |method_name|
-        class_eval <<-RUBY
-          def #{method_name}(value = :__undefined__)
-            Predicate.new self.symbol, :#{method_name}, value
-          end
-        RUBY
       end
 
       def ==(value)

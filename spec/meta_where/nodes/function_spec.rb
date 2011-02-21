@@ -5,7 +5,7 @@ module MetaWhere
         @f = :function.func(1,2,3)
       end
 
-      MetaWhere::PREDICATES.each do |method_name|
+      MetaWhere::Constants::PREDICATES.each do |method_name|
         it "creates #{method_name} predicates with no value" do
           predicate = @f.send(method_name)
           predicate.expr.should eq @f
@@ -21,7 +21,7 @@ module MetaWhere
         end
       end
 
-      MetaWhere::DEFAULT_PREDICATE_ALIASES.each do |method_name, aliases|
+      MetaWhere::Constants::PREDICATE_ALIASES.each do |method_name, aliases|
         aliases.each do |aliaz|
           ['', '_any', '_all'].each do |suffix|
             it "creates #{method_name.to_s + suffix} predicates with no value using the alias #{aliaz.to_s + suffix}" do
