@@ -338,10 +338,10 @@ class TestRelations < Test::Unit::TestCase
       assert_same_elements Developer.all, query.all
     end
 
-    should "merge multiple conditions on the same column and predicate with ORs" do
-      assert_match /"developers"."name" = 'blah' OR "developers"."name" = 'blah2'/,
+    should "merge multiple conditions on the same column and predicate with ANDs" do
+      assert_match /"developers"."name" = 'blah' AND "developers"."name" = 'blah2'/,
                    @r.where(:name => 'blah').where(:name => 'blah2').to_sql
-      assert_match /"developers"."name" LIKE '%blah%' OR "developers"."name" LIKE '%blah2%'/,
+      assert_match /"developers"."name" LIKE '%blah%' AND "developers"."name" LIKE '%blah2%'/,
                    @r.where(:name.matches => '%blah%').where(:name.matches => '%blah2%').to_sql
     end
 

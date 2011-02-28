@@ -237,13 +237,11 @@ module MetaWhere
     def collapse_wheres(arel, wheres)
       binaries = wheres.grep(Arel::Nodes::Binary)
 
-      groups = binaries.group_by do |binary|
-        [binary.class, binary.left]
-      end
+      groups = binaries.group_by {|b| [b.class, b.left]}
 
       groups.each do |_, bins|
         test = bins.inject(bins.shift) do |memo, expr|
-          memo.or(expr)
+          memo.and(expr)
         end
         arel = arel.where(test)
       end
