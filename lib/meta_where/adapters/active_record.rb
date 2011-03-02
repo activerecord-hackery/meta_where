@@ -3,4 +3,4 @@ require 'meta_where/adapters/active_record/join_dependency'
 require 'meta_where/adapters/active_record/join_association'
 
 ActiveRecord::Relation.send :include, MetaWhere::Adapters::ActiveRecord::Relation
-ActiveRecord::Associations::ClassMethods::JoinDependency.send :include, MetaWhere::Adapters::ActiveRecord::JoinDependency
+ActiveRecord::Associations::JoinDependency.send :include, MetaWhere::Adapters::ActiveRecord::JoinDependency

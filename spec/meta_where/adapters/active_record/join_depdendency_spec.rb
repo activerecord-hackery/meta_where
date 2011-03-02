@@ -3,7 +3,7 @@ module MetaWhere
     module ActiveRecord
       describe JoinDependency do
         before do
-          @jd = ::ActiveRecord::Associations::ClassMethods::JoinDependency.new(Person, {}, [])
+          @jd = ::ActiveRecord::Associations::JoinDependency.new(Person, {}, [])
         end
 
         it 'joins with symbols' do

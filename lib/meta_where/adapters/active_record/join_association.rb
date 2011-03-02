@@ -4,7 +4,7 @@ module MetaWhere
   module Adapters
     module ActiveRecord
 
-      class JoinAssociation < ::ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
+      class JoinAssociation < ::ActiveRecord::Associations::JoinDependency::JoinAssociation
 
         def initialize(reflection, join_dependency, parent = nil, polymorphic_class = nil)
           if polymorphic_class && ::ActiveRecord::Base > polymorphic_class

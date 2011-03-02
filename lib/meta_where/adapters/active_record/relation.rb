@@ -5,8 +5,8 @@ module MetaWhere
     module ActiveRecord
       module Relation
 
-        JoinAssociation = ::ActiveRecord::Associations::ClassMethods::JoinDependency::JoinAssociation
-        JoinDependency = ::ActiveRecord::Associations::ClassMethods::JoinDependency
+        JoinAssociation = ::ActiveRecord::Associations::JoinDependency::JoinAssociation
+        JoinDependency = ::ActiveRecord::Associations::JoinDependency
 
         attr_writer :join_dependency
         private :join_dependency=

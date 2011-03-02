@@ -3,7 +3,7 @@ module MetaWhere
     module ActiveRecord
       describe JoinAssociation do
         before do
-          @jd = ::ActiveRecord::Associations::ClassMethods::JoinDependency.new(Note, {}, [])
+          @jd = ::ActiveRecord::Associations::JoinDependency.new(Note, {}, [])
           @notable = Note.reflect_on_association(:notable)
         end
 

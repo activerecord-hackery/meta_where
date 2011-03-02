@@ -2,7 +2,7 @@ require 'active_record'
 
 module MetaWhere
   # Because the AR::Associations namespace is insane
-  JoinPart = ActiveRecord::Associations::ClassMethods::JoinDependency::JoinPart
+  JoinPart = ActiveRecord::Associations::JoinDependency::JoinPart
 
   module Contexts
     class JoinDependencyContext

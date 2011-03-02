@@ -3,7 +3,7 @@ module MetaWhere
     describe SelectVisitor do
 
       before do
-        @jd = ActiveRecord::Associations::ClassMethods::JoinDependency.
+        @jd = ActiveRecord::Associations::JoinDependency.
              new(Person, {
                :children => {
                  :children => {

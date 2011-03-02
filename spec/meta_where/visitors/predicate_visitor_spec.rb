@@ -5,7 +5,7 @@ module MetaWhere
     describe PredicateVisitor do
 
       before do
-        @jd = ActiveRecord::Associations::ClassMethods::JoinDependency.
+        @jd = ActiveRecord::Associations::JoinDependency.
              new(Person, {
                :children => {
                  :children => {
@@ -232,7 +232,7 @@ module MetaWhere
 
       context 'with polymorphic joins in the JoinDependency' do
         before do
-          @jd = ActiveRecord::Associations::ClassMethods::JoinDependency.
+          @jd = ActiveRecord::Associations::JoinDependency.
                 new(Note, dsl{[notable(Article), notable(Person)]}, [])
           @c = MetaWhere::Contexts::JoinDependencyContext.new(@jd)
           @v = PredicateVisitor.new(@c)
