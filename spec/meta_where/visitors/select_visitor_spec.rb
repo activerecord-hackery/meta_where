@@ -49,6 +49,14 @@ module MetaWhere
         select.relation.table_alias.should eq 'parents_people_2'
       end
 
+      it 'honors absolute keypaths' do
+        selects = @v.accept(dsl{{children => {children => ~children.children.name}}})
+        selects.should be_a Array
+        select = selects.first
+        select.should be_a Arel::Attribute
+        select.relation.table_alias.should eq 'children_people_2'
+      end
+
       it 'allows hashes inside keypath keys' do
         selects = @v.accept(Nodes::Stub.new(:children).children.parent.parent => :name)
         selects.should be_a Array

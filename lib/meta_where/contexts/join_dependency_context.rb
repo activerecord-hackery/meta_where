@@ -40,10 +40,13 @@ module MetaWhere
         end
       end
 
-      def traverse(path, parent = @base)
-        path.each do |key|
+      def traverse(keypath, parent = @base, include_endpoint = false)
+        parent = @base if keypath.absolute?
+        keypath.path.each do |key|
           parent = find(key, parent)
         end
+        parent = find(keypath.endpoint, parent) if include_endpoint
+
         parent
       end
 

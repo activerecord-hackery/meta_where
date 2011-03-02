@@ -7,16 +7,22 @@ module MetaWhere
 
       attr_reader :path, :endpoint
 
-      def initialize(path, endpoint)
+      def initialize(path, endpoint, absolute = false)
         @path, @endpoint = path, endpoint
         @path = [@path] unless Array === @path
         @endpoint = Stub.new(@endpoint) if Symbol === @endpoint
+        @absolute = absolute
+      end
+
+      def absolute?
+        @absolute
       end
 
       def eql?(other)
         self.class == other.class &&
         self.path == other.path &&
-        self.endpoint.eql?(other.endpoint)
+        self.endpoint.eql?(other.endpoint) &&
+        self.absolute? == other.absolute?
       end
 
       def |(other)
@@ -33,6 +39,11 @@ module MetaWhere
 
       def -@
         endpoint.respond_to?(:-@) ? super : no_method_error(:-@)
+      end
+
+      def ~@
+        @absolute = true
+        self
       end
 
       # To let these fall through to the endpoint via method_missing

@@ -64,6 +64,18 @@ module MetaWhere
         keypath.to_sql.should eq standard.to_sql
       end
 
+      it 'honors absolute keypaths' do
+        standard = @v.accept({
+          :children => {
+            :children => {
+              :name => 'Joe'
+            }
+          }
+        })
+        keypath = @v.accept(dsl{{children => {children => {~children.children.name => 'Joe'}}}})
+        keypath.to_sql.should eq standard.to_sql
+      end
+
       it 'allows incomplete predicates (missing value) as keys' do
         standard = @v.accept({
           :children => {
@@ -108,6 +120,20 @@ module MetaWhere
         predicate.should be_a Arel::Nodes::Equality
         predicate.right.should be_a Arel::Attribute
         predicate.to_sql.should match /"people"."name" = "people"."name"/
+      end
+
+      it 'contextualizes KeyPath values in hashes' do
+        predicate = @v.accept(dsl{{name => children.name}})
+        predicate.should be_a Arel::Nodes::Equality
+        predicate.right.should be_a Arel::Attribute
+        predicate.to_sql.should match /"people"."name" = "children_people"."name"/
+      end
+
+      it 'contextualizes KeyPath values in predicates' do
+        predicate = @v.accept(dsl{name == children.name})
+        predicate.should be_a Arel::Nodes::Equality
+        predicate.right.should be_a Arel::Attribute
+        predicate.to_sql.should match /"people"."name" = "children_people"."name"/
       end
 
       it 'creates a node of the proper type when a hash has a Predicate as a key' do

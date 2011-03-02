@@ -32,13 +32,19 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Nodes_KeyPath(o, parent)
-        parent = traverse(o.path, parent)
+        parent = traverse(o, parent)
 
         accept(o.endpoint, parent)
       end
 
       def visit_MetaWhere_Nodes_Predicate(o, parent)
-        value = (Nodes::Function === o.value ? accept(o.value, parent) : o.value)
+        value = o.value
+        case value
+        when Nodes::Function
+          value = accept(value, parent)
+        when Nodes::KeyPath
+          value = can_accept?(value.endpoint) ? accept(value, parent) : contextualize(traverse(value, parent))[value.endpoint.to_sym]
+        end
         if Nodes::Function === o.expr
           accept(o.expr, parent).send(o.method_name, value)
         else
@@ -76,8 +82,10 @@ module MetaWhere
 
       def implies_context_change?(v)
         case v
-        when Hash, Nodes::KeyPath, Nodes::Predicate, Nodes::Unary, Nodes::Binary, Nodes::Nary
+        when Hash, Nodes::Predicate, Nodes::Unary, Nodes::Binary, Nodes::Nary
           true
+        when Nodes::KeyPath
+          can_accept?(v.endpoint)
         when Array
           (!v.empty? && v.all? {|val| can_accept?(val)})
         else
@@ -88,7 +96,7 @@ module MetaWhere
       def visit_with_context_change(k, v, parent)
         parent = case k
           when Nodes::KeyPath
-            traverse(k.path_with_endpoint, parent)
+            traverse(k, parent, true)
           else
             find(k, parent)
           end
@@ -108,7 +116,13 @@ module MetaWhere
       end
 
       def visit_without_context_change(k, v, parent)
-        v = contextualize(parent)[v.to_sym] if [Nodes::Stub, Symbol].include? v.class
+        case v
+        when Nodes::Stub, Symbol
+          v = contextualize(parent)[v.to_sym]
+        when Nodes::KeyPath # If we could accept the endpoint, we wouldn't be here
+          v = contextualize(traverse(v, parent))[v.endpoint.to_sym]
+        end
+
         case k
         when Nodes::Predicate
           accept(k % v, parent)

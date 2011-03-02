@@ -51,6 +51,14 @@ module MetaWhere
         ordering.direction.should eq :asc
       end
 
+      it 'honors absolute keypaths' do
+        orders = @v.accept(dsl{{children => {children => ~children.children.name.asc}}})
+        orders.should be_a Array
+        ordering = orders.first
+        ordering.expr.relation.table_alias.should eq 'children_people_2'
+        ordering.direction.should eq :asc
+      end
+
       it 'allows hashes inside keypath keys' do
         orders = @v.accept(Nodes::Stub.new(:children).children.parent.parent => :name.asc)
         orders.should be_a Array

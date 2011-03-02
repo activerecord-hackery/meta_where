@@ -11,6 +11,13 @@ module MetaWhere
         @k.endpoint.should eq Stub.new(:fifth)
       end
 
+      it 'becomes absolute when prefixed with ~' do
+        ~@k.third.fourth.fifth
+        @k.path.should eq [:first, :second, :third, :fourth]
+        @k.endpoint.should eq Stub.new(:fifth)
+        @k.should be_absolute
+      end
+
       it 'stops appending once its endpoint is not a Stub' do
         @k.third.fourth.fifth == 'cinco'
         @k.endpoint.should eq Predicate.new(:fifth, :eq, 'cinco')

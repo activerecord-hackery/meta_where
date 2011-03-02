@@ -23,7 +23,7 @@ module MetaWhere
       def visit_with_context_change(k, v, parent)
         parent = case k
           when Nodes::KeyPath
-            traverse(k.path_with_endpoint, parent)
+            traverse(k, parent, true)
           else
             find(k, parent)
           end
@@ -52,7 +52,7 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Nodes_KeyPath(o, parent)
-        parent = traverse(o.path, parent)
+        parent = traverse(o, parent)
 
         accept(o.endpoint, parent)
       end
