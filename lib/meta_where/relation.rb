@@ -4,7 +4,7 @@ module MetaWhere
     def self.included(base)
       base.class_eval do
         alias_method_chain :reset, :metawhere
-        alias_method_chain :scope_for_create, :metawhere
+        alias_method_chain :where_values_hash, :metawhere
       end
 
       # We have to do this on the singleton to work with Ruby 1.8.7. Not sure why.
@@ -32,16 +32,15 @@ module MetaWhere
       reset_without_metawhere
     end
 
-    def scope_for_create_with_metawhere
-      @scope_for_create ||= begin
-        @create_with_value || predicates_without_conflicting_equality.inject({}) do |hash, where|
-          if is_equality_predicate?(where)
-            hash[where.left.name] = where.right.respond_to?(:value) ? where.right.value : where.right
-          end
-
-          hash
-        end
-      end
+    def where_values_hash_with_metawhere
+      Hash[flatten_predicates(@where_values, predicate_visitor).find_all { |w|
+        w.respond_to?(:operator) && w.operator == :== && w.left.relation.name == table_name
+      }.map { |where|
+        [
+          where.left.name,
+          where.right.respond_to?(:value) ? where.right.value : where.right
+        ]
+      }]
     end
 
     def build_where(opts, other = [])
