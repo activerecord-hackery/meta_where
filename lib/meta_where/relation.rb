@@ -253,9 +253,22 @@ module MetaWhere
     end
 
     def flatten_predicates(predicates, visitor)
-      predicates.map {|p|
+      flatten_nodes(predicates.map {|p|
         visitor.can_accept?(p) ? visitor.accept(p) : p
-      }.flatten.uniq
+      }.flatten).uniq
+    end
+
+    def flatten_nodes(nodes)
+      nodes.map do |n|
+        case n
+        when Arel::Nodes::Grouping
+          flatten_nodes([n.expr])
+        when Arel::Nodes::And
+          flatten_nodes(n.respond_to?(:children) ? n.children : [n.left, n.right])
+        else
+          n
+        end
+      end.flatten
     end
 
     def unique_joins

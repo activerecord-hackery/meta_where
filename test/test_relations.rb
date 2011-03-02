@@ -332,6 +332,13 @@ class TestRelations < Test::Unit::TestCase
       @r = Developer.scoped
     end
 
+
+    should "create new records with multiple values from equality predicates" do
+      object = @r.where(:name => 'New Developer', :salary => 10000).new
+      assert_equal "New Developer", object.name
+      assert_equal 10000, object.salary
+    end
+
     should "allow a hash with another relation as a value" do
       query = @r.where(:company_id => Company.where(:name.matches => '%i%'))
       assert_match /IN \(1, 2, 3\)/, query.to_sql
