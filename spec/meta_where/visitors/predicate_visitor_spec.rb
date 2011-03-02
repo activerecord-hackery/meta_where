@@ -96,6 +96,20 @@ module MetaWhere
         keypath.to_sql.should eq standard.to_sql
       end
 
+      it 'contextualizes Stub values' do
+        predicate = @v.accept(dsl{{name => name}})
+        predicate.should be_a Arel::Nodes::Equality
+        predicate.right.should be_a Arel::Attribute
+        predicate.to_sql.should match /"people"."name" = "people"."name"/
+      end
+
+      it 'contextualizes Symbol values' do
+        predicate = @v.accept(:name => :name)
+        predicate.should be_a Arel::Nodes::Equality
+        predicate.right.should be_a Arel::Attribute
+        predicate.to_sql.should match /"people"."name" = "people"."name"/
+      end
+
       it 'creates a node of the proper type when a hash has a Predicate as a key' do
         predicate = @v.accept(:name.matches => 'Joe%')
         predicate.should be_a Arel::Nodes::Matches

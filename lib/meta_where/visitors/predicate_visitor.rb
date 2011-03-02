@@ -108,6 +108,7 @@ module MetaWhere
       end
 
       def visit_without_context_change(k, v, parent)
+        v = contextualize(parent)[v.to_sym] if [Nodes::Stub, Symbol].include? v.class
         case k
         when Nodes::Predicate
           accept(k % v, parent)
