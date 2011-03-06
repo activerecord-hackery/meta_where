@@ -135,7 +135,6 @@ class TestRelations < Test::Unit::TestCase
                 :developers => {:name.like => '%e%'}
               } & (:name.like % 'Advanced%' | :name.like % 'Init%')
       )
-      puts query.where_values.first.condition2
       assert_match /WHERE "developers"."name" LIKE '%e%' AND \("companies"."name" LIKE 'Advanced%' OR "companies"."name" LIKE 'Init%'\)/,
                    query.to_sql
     end
