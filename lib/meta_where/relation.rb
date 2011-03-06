@@ -33,7 +33,7 @@ module MetaWhere
     end
 
     def where_values_hash_with_metawhere
-      Hash[flatten_predicates(@where_values, predicate_visitor).find_all { |w|
+      Hash[flatten_nodes(flatten_predicates(@where_values, predicate_visitor)).find_all { |w|
         w.respond_to?(:operator) && w.operator == :== && w.left.relation.name == table_name
       }.map { |where|
         [
@@ -253,9 +253,9 @@ module MetaWhere
     end
 
     def flatten_predicates(predicates, visitor)
-      flatten_nodes(predicates.map {|p|
+      predicates.map {|p|
         visitor.can_accept?(p) ? visitor.accept(p) : p
-      }.flatten).uniq
+      }.flatten.uniq
     end
 
     def flatten_nodes(nodes)

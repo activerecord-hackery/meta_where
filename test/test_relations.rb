@@ -130,6 +130,16 @@ class TestRelations < Test::Unit::TestCase
                    @r.where('name LIKE ? AND name LIKE ?', 'Mission%', '%Data').all
     end
 
+    should "nest AND/OR conditions with parentheses" do
+      query = @r.where({
+                :developers => {:name.like => '%e%'}
+              } & (:name.like % 'Advanced%' | :name.like % 'Init%')
+      )
+      puts query.where_values.first.condition2
+      assert_match /WHERE "developers"."name" LIKE '%e%' AND \("companies"."name" LIKE 'Advanced%' OR "companies"."name" LIKE 'Init%'\)/,
+                   query.to_sql
+    end
+
     should "create an AND NOT on binary minus between conditions" do
       assert_equal @r.where(:name.like % 'Mission%' - :name.like % '%Data').all,
                    @r.where('name LIKE ? AND name NOT LIKE ?', 'Mission%', '%Data').all
