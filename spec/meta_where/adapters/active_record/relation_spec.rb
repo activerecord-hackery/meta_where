@@ -157,6 +157,12 @@ module MetaWhere
             arel.to_sql.should match /OR/
           end
 
+          it 'maintains groupings as given' do
+            relation = Person.where(dsl{(name == 'Ernie') | ((name =~ 'Bob%') & (name =~ '%by'))})
+            arel = relation.build_arel
+            arel.to_sql.should match /"people"."name" = 'Ernie' OR \("people"."name" LIKE 'Bob%' AND "people"."name" LIKE '%by'\)/
+          end
+
           it 'maps havings inside a hash to their appropriate association table' do
             relation = Person.joins({
               :children => {
