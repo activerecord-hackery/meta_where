@@ -129,7 +129,6 @@ module MetaWhere
 
           @implicit_readonly = true unless association_joins.empty? && stashed_association_joins.empty?
 
-          # FIXME: refactor this to build an AST
           join_dependency.join_associations.each do |association|
             association.join_to(manager)
           end
@@ -226,7 +225,7 @@ module MetaWhere
             when Arel::Nodes::Equality
               node
             when Arel::Nodes::Grouping
-              find_equality_predicates(node.expr)
+              find_equality_predicates([node.expr])
             when Arel::Nodes::And
               find_equality_predicates(node.children)
             else
@@ -237,8 +236,8 @@ module MetaWhere
 
         # Simulate the logic that occurs in #to_a
         #
-        # This will let us get a dump of the SQL that will be run against the DB for debug
-        # purposes without actually running the query.
+        # This will let us get a dump of the SQL that will be run against the
+        # DB for debug purposes without actually running the query.
         def debug_sql
           if eager_loading?
             including = (@eager_load_values + @includes_values).uniq
@@ -255,7 +254,7 @@ module MetaWhere
         # ...
         # Since you're still looking, let me explain this horrible
         # transgression you see before you.
-        # You see, Relation#where_values is defined on the
+        # You see, Relation#where_values_hash is defined on the
         # ActiveRecord::Relation class. Since it's defined there, but
         # I would very much like to modify its behavior, I have three
         # choices.
