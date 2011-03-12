@@ -29,6 +29,15 @@ module MetaWhere
         hash[klass] = "visit_#{klass.name.gsub('::', '_')}"
       end
 
+      def quoted?(object)
+        case object
+        when Arel::Nodes::SqlLiteral, Bignum, Fixnum
+          false
+        else
+          true
+        end
+      end
+
       def visit(object, parent)
         send(DISPATCH[object.class], object, parent)
       end

@@ -4,109 +4,43 @@ module MetaWhere
   module Nodes
     describe Operators do
 
-      describe '&' do
-        it 'creates And nodes from hashes' do
-          left = {:name.matches => 'J%'}
-          right  = {:name.matches => '%e'}
-          n = left & right
-          n.should be_a And
-          n.children.should eq [left, right]
-        end
+      [:+, :-, :*, :/].each do |operator|
+        describe "#{operator}" do
+          it "creates Operations with #{operator} operator from stubs" do
+            left = Stub.new(:stubby_mcstubbenstein)
+            node = left.send(operator, 1)
+            node.should be_an Operation
+            node.left.should eq left
+            node.operator.should eq operator
+            node.right.should eq 1
+          end
 
-        it 'creates And nodes from predicates' do
-          left = :name.matches % 'J%'
-          right = :name.matches % '%e'
-          n = left & right
-          n.should be_a And
-          n.children.should eq [left, right]
-        end
+          it "creates Operations with #{operator} operator from key paths" do
+            left = KeyPath.new(:first, :second)
+            node = left.send(operator, 1)
+            node.should be_an Operation
+            node.left.should eq left
+            node.operator.should eq operator
+            node.right.should eq 1
+          end
 
-        it 'appends nodes to children from other And nodes' do
-          left = :name.matches % 'J%' & :name.matches % '%e'
-          right = :id.gt % 0
-          expected = left.children + [right]
-          left & right
-          left.should be_a And
-          left.children.should eq expected
-        end
-      end
+          it "creates Operations with #{operator} operator from functions" do
+            left = Function.new(:name, ["arg1", "arg2"])
+            node = left.send(operator, 1)
+            node.should be_an Operation
+            node.left.should eq left
+            node.operator.should eq operator
+            node.right.should eq 1
+          end
 
-      describe '|' do
-        it 'creates Or nodes from hashes' do
-          left = {:name.matches => 'J%'}
-          right  = {:name.matches => '%e'}
-          n = left | right
-          n.should be_a Or
-          n.left.should eq left
-          n.right.should eq right
-        end
-
-        it 'creates Or nodes from predicates' do
-          left = :name.matches % 'J%'
-          right = :name.matches % '%e'
-          n = left | right
-          n.should be_a Or
-          n.left.should eq left
-          n.right.should eq right
-        end
-
-        it 'creates Or nodes from other Or nodes' do
-          left = :name.matches % 'J%' | :name.matches % '%e'
-          right = :id.gt % 0 | :id.lt % 100
-          n = left | right
-          n.should be_a Or
-          n.left.should eq left
-          n.right.should eq right
-        end
-      end
-
-      describe '-' do
-        it 'creates And nodes with Not on right side from hashes' do
-          left = {:name.matches => 'J%'}
-          right  = {:name.matches => '%e'}
-          n = left - right
-          n.should be_a And
-          n.children.should eq [left, -right]
-        end
-
-        it 'creates And nodes with Not on right side from predicates' do
-          left = :name.matches % 'J%'
-          right = :name.matches % '%e'
-          n = left - right
-          n.should be_a And
-          n.children.should eq [left, -right]
-        end
-
-        it 'creates And nodes with Not on right side from other Not nodes' do
-          left = :name.matches % 'J%' - :name.matches % '%e'
-          right = :id.gt % 0 - :id.lt % 100
-          expected = left.children + [-right]
-          left - right
-          left.should be_a And
-          left.children.should eq expected
-        end
-      end
-
-      describe '-@' do
-        it 'creates Not nodes from hashes' do
-          expr = {:name => 'Joe'}
-          n = - expr
-          n.should be_a Not
-          n.expr.should eq expr
-        end
-
-        it 'creates Not nodes from predicates' do
-          expr = :name.matches % 'J%'
-          n = - expr
-          n.should be_a Not
-          n.expr.should eq expr
-        end
-
-        it 'creates Not nodes from other Not nodes' do
-          expr = -(:name.matches % '%e')
-          n = - expr
-          n.should be_a Not
-          n.expr.should eq expr
+          it "creates Operations with #{operator} operator from operations" do
+            left = Stub.new(:stubby_mcstubbenstein) + 1
+            node = left.send(operator, 1)
+            node.should be_an Operation
+            node.left.should eq left
+            node.operator.should eq operator
+            node.right.should eq 1
+          end
         end
       end
 

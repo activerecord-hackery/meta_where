@@ -1,21 +1,23 @@
 module MetaWhere
   module Nodes
     module Operators
-      def |(other)
-        Or.new(self, other)
+
+      def +(value)
+        Operation.new(self, :+, value)
       end
 
-      def &(other)
-        And.new([self, other])
+      def -(value)
+        Operation.new(self, :-, value)
       end
 
-      def -(other)
-        And.new([self, Not.new(other)])
+      def *(value)
+        Operation.new(self, :*, value)
       end
 
-      def -@
-        Not.new(self)
+      def /(value)
+        Operation.new(self, :/, value)
       end
+
     end
   end
 end

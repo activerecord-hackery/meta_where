@@ -57,15 +57,44 @@ module MetaWhere
           case arg
           when Nodes::Function
             accept(arg, parent)
-          when Symbol
-            Arel.sql(arel_visitor.accept contextualize(parent)[arg])
-          when Nodes::Stub
-            Arel.sql(arel_visitor.accept contextualize(parent)[arg.symbol])
+          when Nodes::KeyPath
+            can_accept?(arg.endpoint) ? accept(arg, parent) : contextualize(traverse(arg, parent))[arg.endpoint.to_sym]
+          when Symbol, Nodes::Stub
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg.to_sym])
           else
-            arg
+            quoted?(arg) ? Arel.sql(arel_visitor.accept arg) : arg
           end
         end
         Arel::Nodes::NamedFunction.new(o.name, args, o.alias)
+      end
+
+      def visit_MetaWhere_Nodes_Operation(o, parent)
+        args = o.args.map do |arg|
+          case arg
+          when Nodes::Function
+            accept(arg, parent)
+          when Nodes::KeyPath
+            can_accept?(arg.endpoint) ? accept(arg, parent) : contextualize(traverse(arg, parent))[arg.endpoint.to_sym]
+          when Symbol, Nodes::Stub
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg.to_sym])
+          else
+            quoted?(arg) ? Arel.sql(arel_visitor.accept arg) : arg
+          end
+        end
+
+        op = case o.operator
+        when :+
+          Arel::Nodes::Addition.new(args[0], args[1])
+        when :-
+          Arel::Nodes::Subtraction.new(args[0], args[1])
+        when :*
+          Arel::Nodes::Multiplication.new(args[0], args[1])
+        when :/
+          Arel::Nodes::Division.new(args[0], args[1])
+        else
+          Arel::Nodes::InfixOperation(o.operator, args[0], args[1])
+        end
+        o.alias ? op.as(o.alias) : op
       end
 
       def visit_MetaWhere_Nodes_And(o, parent)

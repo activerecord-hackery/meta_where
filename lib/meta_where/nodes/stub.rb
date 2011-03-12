@@ -1,10 +1,12 @@
 require 'meta_where/predicate_methods'
+require 'meta_where/nodes/operators'
 
 module MetaWhere
   module Nodes
     class Stub
 
       include PredicateMethods
+      include Operators
 
       attr_reader :symbol
 

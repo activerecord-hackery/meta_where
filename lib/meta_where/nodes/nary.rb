@@ -1,7 +1,7 @@
 module MetaWhere
   module Nodes
     class Nary
-      include Operators
+      include PredicateOperators
 
       attr_reader :children
 

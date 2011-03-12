@@ -1,12 +1,12 @@
 require 'meta_where/predicate_methods'
-require 'meta_where/nodes/operators'
+require 'meta_where/nodes/predicate_operators'
 
 module MetaWhere
   module Nodes
     class Predicate
 
       include PredicateMethods
-      include Operators
+      include PredicateOperators
 
       attr_accessor :value
       attr_reader :expr, :method_name

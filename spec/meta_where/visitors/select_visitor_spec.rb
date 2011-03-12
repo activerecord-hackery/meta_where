@@ -65,6 +65,26 @@ module MetaWhere
         select.relation.table_alias.should eq 'parents_people_2'
       end
 
+      it 'creates an ARel NamedFunction node for a Function node' do
+        function = @v.accept(:find_in_set.func())
+        function.should be_a Arel::Nodes::NamedFunction
+      end
+
+      it 'maps symbols in Function args to ARel attributes' do
+        function = @v.accept(:find_in_set.func(:id, '1,2,3'))
+        function.to_sql.should match /find_in_set\("people"."id", '1,2,3'\)/
+      end
+
+      it 'accepts keypaths as function args' do
+        function = @v.accept(dsl{find_in_set(children.children.id, '1,2,3')})
+        function.to_sql.should match /find_in_set\("children_people_2"."id", '1,2,3'\)/
+      end
+
+      it 'sets the alias on the ARel NamedFunction from the Function alias' do
+        function = @v.accept(:find_in_set.func(:id, '1,2,3').as('newname'))
+        function.to_sql.should match /newname/
+      end
+
     end
   end
 end

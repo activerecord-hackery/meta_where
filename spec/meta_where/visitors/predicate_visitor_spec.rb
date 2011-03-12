@@ -190,15 +190,6 @@ module MetaWhere
         predicate.right.should eq 'Joe'
       end
 
-      it 'creates an ARel Grouping node containing an And node for And nodes' do
-        left = :name.matches % 'Joe%'
-        right = :id.gt % 1
-        predicate = @v.accept(left - right)
-        predicate.should be_a Arel::Nodes::Grouping
-        predicate.expr.should be_a Arel::Nodes::And
-        predicate.expr.children.should have(2).items
-      end
-
       it 'creates an ARel Grouping node containing an Or node for Or nodes' do
         left = :name.matches % 'Joe%'
         right = :id.gt % 1
@@ -228,6 +219,31 @@ module MetaWhere
       it 'sets the alias on the ARel NamedFunction from the Function alias' do
         function = @v.accept(:find_in_set.func(:id, '1,2,3').as('newname'))
         function.to_sql.should match /newname/
+      end
+
+      it 'creates an ARel Addition node for an Operation node with + as operator' do
+        operation = @v.accept(dsl{id + 1})
+        operation.should be_a Arel::Nodes::Addition
+      end
+
+      it 'creates an ARel Subtraction node for an Operation node with - as operator' do
+        operation = @v.accept(dsl{id - 1})
+        operation.should be_a Arel::Nodes::Subtraction
+      end
+
+      it 'creates an ARel Multiplication node for an Operation node with * as operator' do
+        operation = @v.accept(dsl{id * 1})
+        operation.should be_a Arel::Nodes::Multiplication
+      end
+
+      it 'creates an ARel Division node for an Operation node with / as operator' do
+        operation = @v.accept(dsl{id / 1})
+        operation.should be_a Arel::Nodes::Division
+      end
+
+      it 'sets the alias on an InfixOperation from the Operation alias' do
+        operation = @v.accept(dsl{(id + 1).as(:incremented_id)})
+        operation.to_sql.should match /incremented_id/
       end
 
       context 'with polymorphic joins in the JoinDependency' do

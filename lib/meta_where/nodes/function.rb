@@ -5,6 +5,7 @@ module MetaWhere
     class Function
 
       include PredicateMethods
+      include Operators
 
       attr_reader :name, :args, :alias
 

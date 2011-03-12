@@ -1,9 +1,9 @@
-require 'meta_where/nodes/operators'
+require 'meta_where/nodes/predicate_operators'
 
 module MetaWhere
   module Nodes
     class Binary
-      include Operators
+      include PredicateOperators
 
       attr_reader :left, :right
 

@@ -1,8 +1,10 @@
 require 'meta_where/nodes/operators'
+require 'meta_where/nodes/predicate_operators'
 
 module MetaWhere
   module Nodes
     class KeyPath
+      include PredicateOperators
       include Operators
 
       attr_reader :path, :endpoint
@@ -33,15 +35,27 @@ module MetaWhere
         endpoint.respond_to?(:&) ? super : no_method_error(:&)
       end
 
-      def -(other)
-        endpoint.respond_to?(:-) ? super : no_method_error(:-)
-      end
-
       def -@
         endpoint.respond_to?(:-@) ? super : no_method_error(:-@)
       end
 
-      def ~@
+      def +(other)
+        endpoint.respond_to?(:+) ? super : no_method_error(:+)
+      end
+
+      def -(other)
+        endpoint.respond_to?(:-) ? super : no_method_error(:-)
+      end
+
+      def *(other)
+        endpoint.respond_to?(:*) ? super : no_method_error(:*)
+      end
+
+      def /(other)
+        endpoint.respond_to?(:/) ? super : no_method_error(:/)
+      end
+
+      def ~
         @absolute = true
         self
       end

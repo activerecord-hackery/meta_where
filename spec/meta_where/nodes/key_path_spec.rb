@@ -55,7 +55,7 @@ module MetaWhere
         expect {@k.third.fourth & Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
       end
 
-      it 'creates OR nodes with | if the endpoint responds to |' do
+      it 'creates Or nodes with | if the endpoint responds to |' do
         node = @k.third.fourth.eq('Bob') | Stub.new(:attr).eq('Joe')
         node.should be_a Or
         node.left.should eq @k
@@ -66,14 +66,15 @@ module MetaWhere
         expect {@k.third.fourth | Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
       end
 
-      it 'creates AND nodes with a NOT right hand side with - if the endpoint responds to -' do
-        node = @k.third.fourth.eq('Bob') - Stub.new(:attr).eq('Joe')
-        node.should be_a And
-        node.children.should eq [@k, Not.new(Stub.new(:attr).eq('Joe'))]
+      it 'creates Operation nodes with - if the endpoint responds to -' do
+        node = @k.third.fourth - 4
+        node.should be_an Operation
+        node.left.should eq @k
+        node.right.should eq 4
       end
 
       it 'raises NoMethodError with - if the endpoint does not respond to -' do
-        expect {@k.third.fourth - Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
+        expect {@k.third.fourth(Person) - Stub.new(:attr).eq('Joe')}.to raise_error NoMethodError
       end
 
       it 'creates NOT nodes with -@ if the endpoint responds to -@' do
