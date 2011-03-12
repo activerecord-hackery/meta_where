@@ -1,6 +1,11 @@
 require 'meta_where/predicate_methods'
 
 class Symbol
+  # These extensions to Symbol are loaded optionally, with:
+  #
+  #   MetaWhere.configure do |config|
+  #     config.load_core_extensions!
+  #   end
 
   include MetaWhere::PredicateMethods
 

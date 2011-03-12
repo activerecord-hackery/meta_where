@@ -37,4 +37,5 @@ A lot.
   * <= - Less than or equal to
   * [] - Alternative function syntax. Just use parentheses, not sure I'm gonna keep [].
 
-There's more -- have a read through the specs for a better idea of what you can do.
+There's more -- have a read through the specs for a better idea of what you can do,
+or clone the repo, run <tt>bundle install</tt> and play around in <tt>rake console</tt>.
