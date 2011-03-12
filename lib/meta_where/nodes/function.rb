@@ -14,7 +14,7 @@ module MetaWhere
       end
 
       def as(alias_name)
-        @alias = Arel.sql(alias_name.to_s)
+        @alias = alias_name.to_s
         self
       end
 
