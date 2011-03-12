@@ -88,11 +88,18 @@ module MetaWhere
         path + [endpoint]
       end
 
+      def to_hash
+        parts = path_with_endpoint
+        hash = Hash[[parts.pop(2)]]
+        parts.reverse.inject(hash) {|memo, val| {val => memo} }
+      end
+
       def to_s
         path.map(&:to_s).join('.') << ".#{endpoint}"
       end
 
       def method_missing(method_id, *args)
+        super if method_id == :to_ary
         if endpoint.respond_to? method_id
           @endpoint = @endpoint.send(method_id, *args)
           self

@@ -17,7 +17,8 @@ module MetaWhere
 
         def build_with_metawhere(associations, parent = nil, join_type = Arel::InnerJoin)
           associations = associations.symbol if Nodes::Stub === associations
-          if MetaWhere::Nodes::Join === associations
+          case associations
+          when Nodes::Join
             parent ||= join_parts.last
             reflection = parent.reflections[associations.name] or
               raise ::ActiveRecord::ConfigurationError, "Association named '#{ associations.name }' was not found; perhaps you misspelled it?"
@@ -31,6 +32,8 @@ module MetaWhere
             end
 
             join_association
+          when Nodes::KeyPath
+            build(associations.to_hash, parent, join_type)
           else
             build_without_metawhere(associations, parent, join_type)
           end

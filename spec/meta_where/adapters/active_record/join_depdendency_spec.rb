@@ -24,6 +24,17 @@ module MetaWhere
           @jd.join_associations[1].table_name.should eq 'comments'
         end
 
+        it 'joins with key paths' do
+          @jd.send(:build, dsl{children.children.parent})
+          @jd.join_associations.should have(3).associations
+          @jd.join_associations.each do |association|
+            association.join_type.should eq Arel::InnerJoin
+          end
+          @jd.join_associations[0].aliased_table_name.should eq 'children_people'
+          @jd.join_associations[1].aliased_table_name.should eq 'children_people_2'
+          @jd.join_associations[2].aliased_table_name.should eq 'parents_people'
+        end
+
         it 'joins using outer joins' do
           @jd.send(:build, :articles.outer => :comments.outer)
           @jd.join_associations.should have(2).associations

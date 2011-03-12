@@ -94,7 +94,7 @@ module MetaWhere
             case join
             when String
               'string_join'
-            when Hash, Symbol, Array, Nodes::Stub, Nodes::Join
+            when Hash, Symbol, Array, Nodes::Stub, Nodes::Join, Nodes::KeyPath
               'association_join'
             when JoinAssociation
               'stashed_join'
