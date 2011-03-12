@@ -239,6 +239,11 @@ module MetaWhere
             relation.first.max_id.should eq 332
           end
 
+          it 'allows an operation in the select values via block' do
+            relation = Person.select{[id, (id + 1).as('id_plus_one')]}.where('id_plus_one = 2')
+            relation.first.id.should eq 1
+          end
+
         end
 
         describe '#where' do
@@ -262,6 +267,16 @@ module MetaWhere
             block.to_sql.should match /"people"."name" = 'bob'/
             block.to_sql.should match /AND/
             block.to_sql.should match /"comments"."body" = 'First post!'/
+          end
+
+          it 'allows a condition on a function via block' do
+            relation = Person.where{coalesce(nil,id) == 5}
+            relation.first.id.should eq 5
+          end
+
+          it 'allows a condition on an operation via block' do
+            relation = Person.where{(id + 1) == 2}
+            relation.first.id.should eq 1
           end
 
         end
@@ -303,6 +318,16 @@ module MetaWhere
           it 'allows complex conditions on aggregate columns' do
             relation = Person.group(:parent_id).having{salary == max(salary)}
             relation.first.name.should eq 'Gladyce Kulas'
+          end
+
+          it 'allows a condition on a function via block' do
+            relation = Person.group(:id).having{coalesce(nil,id) == 5}
+            relation.first.id.should eq 5
+          end
+
+          it 'allows a condition on an operation via block' do
+            relation = Person.group(:id).having{(id + 1) == 2}
+            relation.first.id.should eq 1
           end
 
         end
