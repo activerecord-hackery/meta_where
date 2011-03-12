@@ -57,7 +57,7 @@ module MetaWhere
         select.relation.table_alias.should eq 'children_people_2'
       end
 
-      it 'allows hashes inside keypath keys' do
+      it 'allows hashes with keypath keys' do
         selects = @v.accept(Nodes::Stub.new(:children).children.parent.parent => :name)
         selects.should be_a Array
         select = selects.first
@@ -83,6 +83,31 @@ module MetaWhere
       it 'sets the alias on the ARel NamedFunction from the Function alias' do
         function = @v.accept(:find_in_set.func(:id, '1,2,3').as('newname'))
         function.to_sql.should match /newname/
+      end
+
+      it 'creates an ARel Addition node for an Operation node with + as operator' do
+        operation = @v.accept(dsl{id + 1})
+        operation.should be_a Arel::Nodes::Addition
+      end
+
+      it 'creates an ARel Subtraction node for an Operation node with - as operator' do
+        operation = @v.accept(dsl{id - 1})
+        operation.should be_a Arel::Nodes::Subtraction
+      end
+
+      it 'creates an ARel Multiplication node for an Operation node with * as operator' do
+        operation = @v.accept(dsl{id * 1})
+        operation.should be_a Arel::Nodes::Multiplication
+      end
+
+      it 'creates an ARel Division node for an Operation node with / as operator' do
+        operation = @v.accept(dsl{id / 1})
+        operation.should be_a Arel::Nodes::Division
+      end
+
+      it 'sets the alias on an InfixOperation from the Operation alias' do
+        operation = @v.accept(dsl{(id + 1).as(:incremented_id)})
+        operation.to_sql.should match /incremented_id/
       end
 
     end

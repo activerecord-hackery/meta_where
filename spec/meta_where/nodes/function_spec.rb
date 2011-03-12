@@ -41,6 +41,18 @@ module MetaWhere
         end
       end
 
+      it 'creates ascending Order nodes with #asc' do
+        order = @f.asc
+        order.expr.should eq @f
+        order.should be_ascending
+      end
+
+      it 'creates descending Order nodes with #desc' do
+        order = @f.desc
+        order.expr.should eq @f
+        order.should be_descending
+      end
+
       it 'creates eq predicates with ==' do
         predicate = @f == 1
         predicate.expr.should eq @f

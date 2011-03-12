@@ -58,7 +58,48 @@ module MetaWhere
       end
 
       def visit_MetaWhere_Nodes_Order(o, parent)
-        contextualize(parent)[o.attribute].send(o.descending? ? :desc : :asc)
+        accept(o.expr, parent).send(o.descending? ? :desc : :asc)
+      end
+
+      def visit_MetaWhere_Nodes_Function(o, parent)
+        args = o.args.map do |arg|
+          case arg
+          when Nodes::Function, Nodes::KeyPath
+            accept(arg, parent)
+          when Symbol, Nodes::Stub
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg.to_sym])
+          else
+            quoted?(arg) ? Arel.sql(arel_visitor.accept arg) : arg
+          end
+        end
+        Arel::Nodes::NamedFunction.new(o.name, args, o.alias)
+      end
+
+      def visit_MetaWhere_Nodes_Operation(o, parent)
+        args = o.args.map do |arg|
+          case arg
+          when Nodes::Function
+            accept(arg, parent)
+          when Symbol, Nodes::Stub
+            Arel.sql(arel_visitor.accept contextualize(parent)[arg.to_sym])
+          else
+            quoted?(arg) ? Arel.sql(arel_visitor.accept arg) : arg
+          end
+        end
+
+        op = case o.operator
+        when :+
+          Arel::Nodes::Addition.new(args[0], args[1])
+        when :-
+          Arel::Nodes::Subtraction.new(args[0], args[1])
+        when :*
+          Arel::Nodes::Multiplication.new(args[0], args[1])
+        when :/
+          Arel::Nodes::Division.new(args[0], args[1])
+        else
+          Arel.sql("#{arel_visitor.accept(args[0])} #{o.operator} #{arel_visitor.accept(args[1])}")
+        end
+        o.alias ? op.as(o.alias) : op
       end
 
     end

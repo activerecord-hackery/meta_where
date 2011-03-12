@@ -22,6 +22,14 @@ module MetaWhere
         Predicate.new self, :eq, value
       end
 
+      def asc
+        Order.new self, 1
+      end
+
+      def desc
+        Order.new self, -1
+      end
+
       # Won't work on Ruby 1.8.x so need to do this conditionally
       define_method('!=') do |value|
         Predicate.new(self, :not_eq, value)

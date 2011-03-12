@@ -1,11 +1,11 @@
 module MetaWhere
   module Nodes
     class Order
-      attr_reader :attribute, :direction
+      attr_reader :expr, :direction
 
-      def initialize(attribute, direction = 1)
+      def initialize(expr, direction = 1)
         raise ArgumentError, "Direction #{direction} is not valid. Must be -1 or 1." unless [-1,1].include? direction
-        @attribute, @direction = attribute, direction
+        @expr, @direction = expr, direction
       end
 
       def asc

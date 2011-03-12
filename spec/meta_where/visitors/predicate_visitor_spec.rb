@@ -92,7 +92,7 @@ module MetaWhere
         keypath.to_sql.should eq standard.to_sql
       end
 
-      it 'allows hashes inside keypath keys' do
+      it 'allows hashes as values with keypath keys' do
         standard = @v.accept({
           :children => {
             :children => {
