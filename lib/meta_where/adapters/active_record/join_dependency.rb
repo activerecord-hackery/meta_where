@@ -17,6 +17,7 @@ module MetaWhere
 
         def build_with_metawhere(associations, parent = nil, join_type = Arel::InnerJoin)
           associations = associations.symbol if Nodes::Stub === associations
+
           case associations
           when Nodes::Join
             parent ||= join_parts.last
@@ -33,7 +34,11 @@ module MetaWhere
 
             join_association
           when Nodes::KeyPath
-            build(associations.to_hash, parent, join_type)
+            parent ||= join_parts.last
+            associations.path_with_endpoint.each do |key|
+              parent = build(key, parent, join_type)
+            end
+            parent
           else
             build_without_metawhere(associations, parent, join_type)
           end

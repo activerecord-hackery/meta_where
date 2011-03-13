@@ -88,12 +88,6 @@ module MetaWhere
         path + [endpoint]
       end
 
-      def to_hash
-        parts = path_with_endpoint
-        hash = Hash[[parts.pop(2)]]
-        parts.reverse.inject(hash) {|memo, val| {val => memo} }
-      end
-
       def to_s
         path.map(&:to_s).join('.') << ".#{endpoint}"
       end
