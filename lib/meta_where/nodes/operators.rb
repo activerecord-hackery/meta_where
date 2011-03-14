@@ -18,6 +18,10 @@ module MetaWhere
         Operation.new(self, :/, value)
       end
 
+      def op(operator, value)
+        Operation.new(self, operator, value)
+      end
+
     end
   end
 end

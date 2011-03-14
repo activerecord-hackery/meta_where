@@ -244,6 +244,11 @@ module MetaWhere
             relation.first.id.should eq 1
           end
 
+          it 'allows custom operators in the select values via block' do
+            relation = Person.select{name.op('||', '-diddly').as(flanderized_name)}
+            relation.first.flanderized_name.should eq 'Aric Smith-diddly'
+          end
+
         end
 
         describe '#where' do

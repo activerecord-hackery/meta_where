@@ -55,6 +55,10 @@ module MetaWhere
         endpoint.respond_to?(:/) ? super : no_method_error(:/)
       end
 
+      def op(operator, other)
+        endpoint.respond_to?(:op) ? super : no_method_error(:/)
+      end
+
       def ~
         @absolute = true
         self
