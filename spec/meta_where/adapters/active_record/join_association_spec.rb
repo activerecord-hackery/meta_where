@@ -8,7 +8,7 @@ module MetaWhere
         end
 
         it 'accepts a 4th parameter to set a polymorphic class' do
-          join_association = JoinAssociation.new(@notable, @jd, nil, Article)
+          join_association = JoinAssociation.new(@notable, @jd, @jd.join_base, Article)
           join_association.reflection.klass.should eq Article
         end
 

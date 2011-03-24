@@ -122,7 +122,7 @@ module MetaWhere
           )
 
           join_nodes.each do |join|
-            join_dependency.table_aliases[join.left.name.downcase] = 1
+            join_dependency.alias_tracker.aliased_name_for(join.left.name.downcase)
           end
 
           join_dependency.graft(*stashed_association_joins)
