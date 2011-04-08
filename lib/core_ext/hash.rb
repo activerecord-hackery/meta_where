@@ -6,7 +6,7 @@ class Hash
   # if you load core extensions with:
   #
   #   MetaWhere.configure do |config|
-  #     config.load_core_extensions!
+  #     config.load_core_extensions :hash
   #   end
 
   include MetaWhere::Nodes::PredicateOperators

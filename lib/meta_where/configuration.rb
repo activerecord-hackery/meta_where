@@ -8,15 +8,9 @@ module MetaWhere
       yield self
     end
 
-    def load_core_extensions!
-      require 'core_ext'
-    end
-
-    def setup_default_aliases!
-      Constants::PREDICATE_ALIASES.each do |original, aliases|
-        aliases.each do |aliaz|
-          alias_predicate aliaz, original
-        end
+    def load_core_extensions(*exts)
+      exts.each do |ext|
+        require "core_ext/#{ext}"
       end
     end
 

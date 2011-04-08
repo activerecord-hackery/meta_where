@@ -4,7 +4,7 @@ class Symbol
   # These extensions to Symbol are loaded optionally, with:
   #
   #   MetaWhere.configure do |config|
-  #     config.load_core_extensions!
+  #     config.load_core_extensions :symbol
   #   end
 
   include MetaWhere::PredicateMethods

@@ -26,5 +26,5 @@ end
 require 'meta_where'
 
 MetaWhere.configure do |config|
-  config.load_core_extensions!
+  config.load_core_extensions :hash, :symbol
 end
