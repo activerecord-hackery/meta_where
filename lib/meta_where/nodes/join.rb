@@ -37,9 +37,7 @@ module MetaWhere
 
       def convert_to_class(value)
         case value
-        when String
-          Kernel.const_get(value.to_sym)
-        when Symbol
+        when String, Symbol
           Kernel.const_get(value)
         when Class
           value
