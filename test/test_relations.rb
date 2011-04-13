@@ -67,6 +67,11 @@ class TestRelations < Test::Unit::TestCase
                    @r.where(:name.eq % 'New Company').new.name
     end
 
+    should "create new records with values from equality predicates through an association with a scope applied" do
+      assert_equal "New Developer",
+                   Company.new.developers.new_dev.build.name
+    end
+
     should "create new records with values from equality predicates using last supplied predicate" do
       assert_equal "Newer Company",
                    @r.where(:name => 'New Company').where(:name => 'Newer Company').new.name
