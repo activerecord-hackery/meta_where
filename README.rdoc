@@ -75,7 +75,7 @@ Operators are:
 * ^ (not equal)
 * + (in array/range)
 * - (not in array/range)
-* =~ (matching -- not a regexp but a string for SQL LIKE)
+* =~ (matching -- not a regexp but a string for SQL LIKE) <b>NOTE:</b> This will override 1.9.x "symbol as string" =~ behavior.
 * !~ (not matching, only available under Ruby 1.9)
 * > (greater than)
 * >= (greater than or equal to)
