@@ -1,10 +1,11 @@
 = MetaWhere
 
-(If you're using edge Rails and you'd like to help me test the successor to
-MetaWhere, please have a look at {Squeel}[http://github.com/ernie/squeel])
-
 MetaWhere puts the power of Arel predications (comparison methods) in your ActiveRecord
 condition hashes.
+
+== Using Rails 3.1?
+
+You want to take a look at {Squeel}[http://github.com/ernie/squeel] instead.
 
 == Why?
 
