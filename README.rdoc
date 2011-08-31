@@ -3,9 +3,12 @@
 MetaWhere puts the power of Arel predications (comparison methods) in your ActiveRecord
 condition hashes.
 
-== Using Rails 3.1?
+= Using Rails 3.1?
 
 You want to take a look at {Squeel}[http://github.com/ernie/squeel] instead.
+
+There were extensive changes to ActiveRecord between Rails 3.0 and 3.1, and *MetaWhere
+will not be updated to support 3.1.*
 
 == Why?
 
