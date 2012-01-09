@@ -37,6 +37,19 @@ You can use MetaWhere in your usual method chain:
   Article.where(:title.matches => 'Hello%', :created_at.gt => 3.days.ago)
   => SELECT "articles".* FROM "articles" WHERE ("articles"."title" LIKE 'Hello%')
      AND ("articles"."created_at" > '2010-04-12 18:39:32.592087')
+  
+Methods are:
+
+* .eq (equal)
+* .not_eq (not equal)
+* .in (in array/range)
+* .not_in (not in array/range)
+* .matches (matching -- not a regexp but a string for SQL LIKE)
+* .does_not_match (not matching, only available under Ruby 1.9)
+* .gt (greater than)
+* .gteq (greater than or equal to)
+* .lt (less than)
+* .lteq (less than or equal to)
 
 === Find condition hash
 You can also use similar syntax in a conditions hash supplied to ActiveRecord::Base#find:
