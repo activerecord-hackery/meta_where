@@ -1,3 +1,3 @@
-class Symbol
+class String
   include MetaWhere::Extension
 end
