@@ -217,6 +217,11 @@ class TestRelations < Test::Unit::TestCase
       assert_equal highest_paying, @r.joins(:developers).order(:developers => :salary.desc).first
     end
 
+    should "allow ordering on MetaWhere::Function objects" do
+      smallest_company = @r.all.sort {|a, b| a.developers.count <=> b.developers.count}.first
+      assert_equal smallest_company, @r.joins(:developers).group('companies.id').order(:developers => :count[:id].asc).first
+    end
+
     context "with eager-loaded developers" do
       setup do
         @r = @r.includes(:developers).where(:developers => {:name => 'Ernie Miller'})

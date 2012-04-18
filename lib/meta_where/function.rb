@@ -77,6 +77,14 @@ module MetaWhere
       MetaWhere::Condition.new(self, value, :lteq)
     end
 
+    def asc
+      MetaWhere::Column.new(self, :asc)
+    end
+
+    def desc
+      MetaWhere::Column.new(self, :desc)
+    end
+
     # Play "nicely" with expand_hash_conditions_for_aggregates
     def to_sym
       self
