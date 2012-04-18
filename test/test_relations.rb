@@ -292,6 +292,28 @@ class TestRelations < Test::Unit::TestCase
     end
   end
 
+  context "A NOTed relation with the same base class" do
+    setup do
+      @r = Developer.where(:salary.gteq => 70000) - Developer.where(:company_id.not_eq => 2)
+    end
+
+    should "have identical sql as using the NOT on the hashes" do
+      assert_equal Developer.where({:salary.gteq => 70000} - {:company_id.not_eq => 2}).to_sql,
+                   @r.to_sql
+    end
+  end
+
+  context "An ORed relation with the same base class" do
+    setup do
+      @r = Developer.where(:salary.gteq => 70000) | Developer.where(:company_id.not_eq => 2)
+    end
+
+    should "have identical sql as using the NOT on the hashes" do
+      assert_equal Developer.where({:salary.gteq => 70000} | {:company_id.not_eq => 2}).to_sql,
+                   @r.to_sql
+    end
+  end
+
   context "A Person relation" do
     setup do
       @r = Person.scoped
