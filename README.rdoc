@@ -1,3 +1,7 @@
+# Archived
+
+This project is archived
+
 = MetaWhere
 
 MetaWhere puts the power of Arel predications (comparison methods) in your ActiveRecord
